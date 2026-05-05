@@ -25,7 +25,7 @@ class Malipo:
         else:
             self.environment = "live" if api_key.startswith("sk_live_") else "sandbox"
             
-        self.base_url = base_url or "https://lcwadpidhwptpzriqnjd.supabase.co/functions/v1"
+        self.base_url = base_url or "https://api.malipo.dev"
         
         # Initialize resources
         self.charges = ChargesResource(self)

@@ -24,7 +24,7 @@ export class Malipo {
     this.environment = config.environment || (this.apiKey.startsWith("sk_live_") ? "live" : "sandbox");
     
     // Set base URL
-    this.baseUrl = config.baseUrl || "https://lcwadpidhwptpzriqnjd.supabase.co/functions/v1";
+    this.baseUrl = config.baseUrl || "https://api.malipo.dev";
   }
 
   private async request<T>(

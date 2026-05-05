@@ -9,7 +9,7 @@ public class MalipoConfig {
         this.apiKey = builder.apiKey;
         this.environment = builder.environment != null ? builder.environment : 
             (apiKey.startsWith("sk_live_") ? "live" : "sandbox");
-        this.baseUrl = builder.baseUrl != null ? builder.baseUrl : "https://lcwadpidhwptpzriqnjd.supabase.co/functions/v1";
+        this.baseUrl = builder.baseUrl != null ? builder.baseUrl : "https://api.malipo.dev";
     }
 
     public String getApiKey() { return apiKey; }

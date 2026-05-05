@@ -13,7 +13,7 @@ def client():
 def test_create_charge(client):
     responses.add(
         responses.POST,
-        "https://lcwadpidhwptpzriqnjd.supabase.co/functions/v1/charge",
+        "https://api.malipo.dev/charge",
         json={"id": "tx_123", "status": "pending"},
         status=200
     )
@@ -32,7 +32,7 @@ def test_create_charge(client):
 def test_retrieve_transaction(client):
     responses.add(
         responses.GET,
-        "https://lcwadpidhwptpzriqnjd.supabase.co/functions/v1/transaction-status?id=tx_123",
+        "https://api.malipo.dev/transaction-status?id=tx_123",
         json={"id": "tx_123", "status": "succeeded"},
         status=200
     )
@@ -44,7 +44,7 @@ def test_retrieve_transaction(client):
 def test_error_handling(client):
     responses.add(
         responses.POST,
-        "https://lcwadpidhwptpzriqnjd.supabase.co/functions/v1/charge",
+        "https://api.malipo.dev/charge",
         json={"error": {"message": "Invalid amount", "code": "invalid_amount"}},
         status=400
     )

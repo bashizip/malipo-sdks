@@ -21,7 +21,7 @@ class Malipo {
     : environment =
           environment ?? (apiKey.startsWith('sk_live_') ? 'live' : 'sandbox'),
       baseUrl =
-          baseUrl ?? 'https://lcwadpidhwptpzriqnjd.supabase.co/functions/v1' {
+          baseUrl ?? 'https://api.malipo.dev' {
     if (apiKey.isEmpty) {
       throw ArgumentError('Malipo API Key is required.');
     }

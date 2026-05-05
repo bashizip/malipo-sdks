@@ -29,7 +29,7 @@ class Malipo
 
         $this->apiKey = $apiKey;
         $this->environment = $environment ?: ($this->isLiveKey($apiKey) ? 'live' : 'sandbox');
-        $this->baseUrl = $baseUrl ?: 'https://lcwadpidhwptpzriqnjd.supabase.co/functions/v1';
+        $this->baseUrl = $baseUrl ?: 'https://api.malipo.dev';
 
         $this->client = new Client([
             'base_uri' => rtrim($this->baseUrl, '/') . '/',
