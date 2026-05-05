@@ -1,0 +1,11 @@
+name: malipo_flutter_sample
+description: Sample application for the Malipo Flutter SDK.
+publish_to: 'none'
+version: 1.0.0
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  malipo:
+    path: ../../flutter

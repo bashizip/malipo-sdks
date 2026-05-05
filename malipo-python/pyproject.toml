@@ -1,0 +1,26 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "malipo"
+version = "1.0.0"
+description = "The official Python library for the Malipo Payment Gateway"
+readme = "README.md"
+requires-python = ">=3.8"
+license = "MIT"
+authors = [
+    { name = "Malipo Dev Team", email = "dev@malipo.com" },
+]
+dependencies = [
+    "requests>=2.25.0",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=7.0.0",
+    "responses>=0.18.0",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["malipo"]

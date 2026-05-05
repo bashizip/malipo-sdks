@@ -1,0 +1,29 @@
+{
+    "name": "malipo/malipo-php",
+    "description": "Official PHP library for the Malipo Payment Gateway",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Malipo Dev Team",
+            "email": "dev@malipo.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.4",
+        "guzzlehttp/guzzle": "^7.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "Malipo\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Malipo\\Tests\\": "tests/"
+        }
+    }
+}

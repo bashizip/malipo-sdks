@@ -1,0 +1,16 @@
+{
+    "name": "malipo/malipo-php-sample",
+    "description": "Sample code for Malipo PHP SDK",
+    "type": "project",
+    "require": {
+        "malipo/malipo-php": "*"
+    },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../../php"
+        }
+    ],
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}

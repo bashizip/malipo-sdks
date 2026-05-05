@@ -1,0 +1,238 @@
+# =========================================================
+# OS / Editor / IDE
+# =========================================================
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+.idea/
+.vscode/
+*.swp
+*.swo
+*.sublime-*
+.project
+.classpath
+.settings/
+
+# =========================================================
+# Environment / Secrets
+# =========================================================
+.env
+.env.*
+!.env.example
+!.env.sample
+
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+secrets.*
+credentials.*
+*.local
+
+# =========================================================
+# Logs
+# =========================================================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+pip-log.txt
+pip-delete-this-directory.txt
+
+# =========================================================
+# Node.js / TypeScript SDK
+# =========================================================
+node_modules/
+dist/
+build/
+coverage/
+.nyc_output/
+.cache/
+.parcel-cache/
+.turbo/
+.next/
+.out/
+
+*.tsbuildinfo
+
+# package manager caches
+.pnpm-store/
+.yarn/*
+!.yarn/releases
+!.yarn/plugins
+!.yarn/sdks
+!.yarn/versions
+
+# =========================================================
+# Python SDK
+# =========================================================
+__pycache__/
+*.py[cod]
+*$py.class
+
+.venv/
+venv/
+env/
+ENV/
+
+build/
+dist/
+*.egg-info/
+.eggs/
+*.egg
+
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.nox/
+.coverage
+coverage.xml
+htmlcov/
+
+# Python packaging
+pip-wheel-metadata/
+site/
+
+# =========================================================
+# PHP / Composer SDK
+# =========================================================
+vendor/
+composer.phar
+
+.phpunit.result.cache
+.phpunit.cache/
+coverage/
+.php-cs-fixer.cache
+
+# =========================================================
+# Dart / Flutter SDK
+# =========================================================
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+
+build/
+coverage/
+
+# Android generated files inside Flutter packages
+android/.gradle/
+android/app/build/
+android/build/
+android/local.properties
+
+# iOS generated files inside Flutter packages
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/Flutter/Generated.xcconfig
+ios/Flutter/ephemeral/
+ios/Runner/GeneratedPluginRegistrant.*
+
+# macOS Flutter generated files
+macos/Flutter/ephemeral/
+macos/Pods/
+
+# Windows/Linux Flutter generated files
+windows/flutter/ephemeral/
+linux/flutter/ephemeral/
+
+# =========================================================
+# Java / Maven / Gradle SDK
+# =========================================================
+target/
+.gradle/
+gradle-app.setting
+!gradle-wrapper.jar
+
+*.class
+*.jar
+*.war
+*.ear
+
+# Keep generated artifacts ignored unless intentionally publishing them
+*.original
+
+# =========================================================
+# Go SDK
+# =========================================================
+bin/
+*.test
+*.out
+go.work.sum
+
+# =========================================================
+# Ruby SDK
+# =========================================================
+.bundle/
+vendor/bundle/
+*.gem
+pkg/
+
+# =========================================================
+# .NET SDK
+# =========================================================
+bin/
+obj/
+*.user
+*.suo
+*.nupkg
+
+# =========================================================
+# Rust SDK
+# =========================================================
+target/
+Cargo.lock
+
+# For Rust libraries, you may want to commit Cargo.lock.
+# If a Rust SDK is an application, remove the Cargo.lock ignore above.
+
+# =========================================================
+# Test / Coverage / Reports
+# =========================================================
+coverage/
+reports/
+test-results/
+junit.xml
+
+# =========================================================
+# Generated API docs
+# =========================================================
+docs/api/
+site/
+public/docs/
+
+# =========================================================
+# Temporary files
+# =========================================================
+tmp/
+temp/
+.cache/
+*.tmp
+*.temp
+
+# =========================================================
+# Local package archives
+# =========================================================
+*.tgz
+*.zip
+*.tar.gz
+
+# =========================================================
+# SDK release artifacts
+# =========================================================
+sdks/**/dist/
+sdks/**/build/
+sdks/**/coverage/
+sdks/**/.env
+sdks/**/.env.*
+!sdks/**/.env.example
+!sdks/**/.env.sample
