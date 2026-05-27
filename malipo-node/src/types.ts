@@ -34,6 +34,26 @@ export interface MalipoConfig {
 }
 
 /**
+ * Payer details sent with a charge
+ */
+export interface MalipoPayer {
+  /**
+   * Payer first name
+   */
+  first_name: string;
+
+  /**
+   * Payer last name
+   */
+  last_name: string;
+
+  /**
+   * Payer email address
+   */
+  email: string;
+}
+
+/**
  * Charge Creation Parameters
  */
 export interface ChargeCreateParams {
@@ -66,6 +86,11 @@ export interface ChargeCreateParams {
    * Optional merchant-defined metadata
    */
   metadata?: Record<string, any>;
+
+  /**
+   * Optional payer details
+   */
+  payer?: MalipoPayer;
 }
 
 /**

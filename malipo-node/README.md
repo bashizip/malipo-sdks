@@ -26,7 +26,12 @@ try {
     currency: 'USD',
     phone: '243810000000',
     network: 'VODACOM_MPESA',
-    description: 'Order #123'
+    description: 'Order #123',
+    payer: {
+      first_name: 'John',
+      last_name: 'Doe',
+      email: 'john.doe@example.com'
+    }
   }, {
     idempotencyKey: 'unique_order_id_123' // Highly recommended
   });
@@ -74,6 +79,9 @@ console.log('Latest status:', transaction.status);
 - `currency`: String (`USD` or `CDF`).
 - `phone`: String (DRC MSISDN format).
 - `network`: `VODACOM_MPESA`, `ORANGE_MONEY`, or `AIRTEL_MONEY`.
+- `description`: (Optional) String.
+- `metadata`: (Optional) Object.
+- `payer`: (Optional) Object with `first_name`, `last_name`, and `email`.
 - `idempotencyKey`: (Optional) Unique string for request deduplication.
 
 ### `malipo.transactions.retrieve(id)`
