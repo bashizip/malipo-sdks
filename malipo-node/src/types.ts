@@ -5,11 +5,18 @@ export type MalipoNetwork = "VODACOM_MPESA" | "AIRTEL_MONEY" | "ORANGE_MONEY";
 
 /**
  * Transaction Status
+ * - `pending`: The transaction is initiated and awaiting customer action (USSD).
+ * - `succeeded`: The payment was successfully completed and settled.
+ * - `failed`: The payment failed (e.g., technical error, provider down).
+ * - `declined`: The customer or provider declined the payment (e.g., insufficient funds).
+ * - `expired`: The payment request timed out before completion.
  */
 export type MalipoTransactionStatus = "pending" | "succeeded" | "failed" | "declined" | "expired";
 
 /**
  * Environment
+ * - `sandbox`: Testing environment with simulated payments.
+ * - `live`: Production environment with real money transactions.
  */
 export type MalipoEnvironment = "sandbox" | "live";
 
@@ -18,241 +25,349 @@ export type MalipoEnvironment = "sandbox" | "live";
  */
 export interface MalipoConfig {
   /**
-   * Your Malipo API Key (starting with `sk_live_` or `sk_test_`)
+   * Your Malipo secret API Key.
+   * Starts with `sk_test_` for Sandbox or `sk_live_` for Live.
    */
   apiKey: string;
   
   /**
-   * Environment to use. If not provided, it will be inferred from the API Key prefix.
+   * Target environment. If omitted, it is auto-inferred from the `apiKey` prefix.
    */
   environment?: MalipoEnvironment;
 
   /**
-   * Custom base URL for the API (optional)
+   * Optional custom base URL for the API.
+   * Default: `https://api.malipo.dev`
    */
   baseUrl?: string;
 }
 
 /**
- * Payer details sent with a charge
+ * Payer details for KYC and verification purposes.
  */
 export interface MalipoPayer {
-  /**
-   * Payer first name
-   */
+  /** Payer first name */
   first_name: string;
 
-  /**
-   * Payer last name
-   */
+  /** Payer last name */
   last_name: string;
 
-  /**
-   * Payer email address
-   */
+  /** Payer email address */
   email: string;
 }
 
 /**
- * Charge Creation Parameters
+ * Parameters for creating a direct charge.
  */
 export interface ChargeCreateParams {
   /**
-   * Amount to charge (in USD for Live, can be USD or CDF for Sandbox)
+   * Amount to charge.
+   * In Live, this must be USD. In Sandbox, USD or CDF are supported.
    */
   amount: number;
   
   /**
-   * Currency code (e.g., "USD", "CDF")
+   * Currency code (e.g., "USD", "CDF").
    */
   currency: string;
   
   /**
-   * Customer phone number in MSISDN format (e.g., "243810000000")
+   * Customer phone number in MSISDN format (e.g., "243810000000").
    */
   phone: string;
   
   /**
-   * Mobile money network
+   * The Mobile Money network to use for the charge.
    */
   network: MalipoNetwork;
   
   /**
-   * Optional description for the transaction
+   * Optional description for the transaction (shown in dashboard).
    */
   description?: string;
   
   /**
-   * Optional merchant-defined metadata
+   * Optional merchant-defined metadata (hidden from customers).
    */
   metadata?: Record<string, any>;
 
   /**
-   * Optional payer details
+   * Optional payer identity details.
    */
   payer?: MalipoPayer;
 }
 
 /**
- * Transaction Record
+ * Represents a Transaction (Charge) record.
  */
 export interface MalipoTransaction {
+  /** Unique Malipo Transaction ID */
   id: string;
+  
+  /** Object type (always "charge" or "transaction") */
   object: "charge" | "transaction";
+  
+  /** Final amount of the transaction */
   amount: number;
+  
+  /** Settlement currency */
   currency: string;
+  
+  /** Currency originally requested by the merchant */
   requested_currency: string;
+  
+  /** Currency in which the merchant will be settled */
   settlement_currency: string | null;
+  
+  /** Amount in settlement currency */
   settlement_amount: number | null;
+  
+  /** Current status of the transaction */
   status: MalipoTransactionStatus;
+  
+  /** Customer phone number used */
   phone: string;
+  
+  /** Network used for payment */
   network: MalipoNetwork;
+  
+  /** Environment in which the transaction occurred */
   environment: MalipoEnvironment;
+  
+  /** Merchant-defined metadata */
   metadata: Record<string, any>;
+  
+  /** ISO 8601 creation timestamp */
   created_at: string;
+  
+  /** ISO 8601 last update timestamp */
   updated_at: string;
+  
+  /** Human-readable failure reason if status is failed/declined */
   failure_reason?: string;
+  
+  /** Machine-readable failure code */
   failure_code?: string;
 }
 
 /**
- * Refund Creation Parameters
+ * Parameters for creating a refund.
  */
 export interface RefundCreateParams {
   /**
-   * The ID of the charge to refund
+   * The ID of the successful charge to refund.
    */
   charge_id: string;
 
   /**
-   * Optional amount to refund. If not provided, the full charge amount will be refunded.
+   * Amount to refund. Omit for a full refund of the original charge.
    */
   amount?: number;
 
   /**
-   * Optional reason for the refund
+   * Reason for the refund.
    */
   reason?: string;
 
   /**
-   * Optional merchant-defined metadata
+   * Optional merchant-defined metadata.
    */
   metadata?: Record<string, any>;
 }
 
 /**
- * Refund Record
+ * Represents a Refund record.
  */
 export interface MalipoRefund {
+  /** Unique Malipo Refund ID */
   id: string;
+  
+  /** Object type (always "refund") */
   object: "refund";
+  
+  /** Amount refunded */
   amount: number;
+  
+  /** Currency of the refund */
   currency: string;
+  
+  /** Requested currency */
   requested_currency: string;
+  
+  /** Settlement currency (if applicable) */
   settlement_currency: string | null;
+  
+  /** Settlement amount (if applicable) */
   settlement_amount: number | null;
+  
+  /** Current status of the refund */
   status: MalipoTransactionStatus;
+  
+  /** MSISDN the refund is sent to */
   phone: string;
+  
+  /** Network used for disbursement */
   network: MalipoNetwork;
+  
+  /** Environment in which the refund occurred */
   environment: MalipoEnvironment;
+  
+  /** Merchant-defined metadata */
   metadata: Record<string, any>;
+  
+  /** ISO 8601 creation timestamp */
   created_at: string;
+  
+  /** ISO 8601 last update timestamp */
   updated_at: string;
+  
+  /** Failure reason if the refund failed */
   failure_reason?: string;
+  
+  /** Failure code if the refund failed */
   failure_code?: string;
 }
 
 /**
- * Checkout Session Creation Parameters
+ * Parameters for creating a hosted checkout session.
  */
 export interface CheckoutSessionCreateParams {
   /**
-   * Amount to charge
+   * The total amount to be paid by the customer.
    */
   amount: number;
 
   /**
-   * Currency code (e.g., "USD", "CDF")
+   * Currency code (e.g., "USD", "CDF").
    */
   currency: string;
 
   /**
-   * Optional description for the checkout page
+   * Description shown on the hosted payment page.
    */
   description?: string;
 
   /**
-   * Optional URL to redirect the customer to after payment
+   * The URL to redirect the customer to after a successful or failed payment.
+   * Malipo will append `status` and `transaction_id` query parameters.
    */
   redirect_url?: string;
 
   /**
-   * Optional expiry date for the session
+   * ISO 8601 date string for session expiration (default: 24h).
    */
   expires_at?: string;
 
   /**
-   * Optional merchant-defined metadata
+   * Merchant-defined metadata associated with the resulting transaction.
    */
   metadata?: Record<string, any>;
 }
 
 /**
- * Checkout Session Record
+ * Represents a Hosted Checkout Session.
  */
 export interface MalipoCheckoutSession {
+  /** Unique Session ID */
   id: string;
+  
+  /** Object type */
   object: "checkout_session";
+  
+  /** Secure session token */
   token: string;
+  
+  /** The URL where you should redirect your customer */
   url: string;
+  
+  /** Session amount */
   amount: number;
+  
+  /** Session currency */
   currency: string;
+  
+  /** Session description */
   description: string | null;
+  
+  /** Current session status */
   status: "active" | "completed" | "expired";
+  
+  /** Session environment */
   environment: MalipoEnvironment;
+  
+  /** ISO 8601 expiration timestamp */
   expires_at: string;
+  
+  /** ISO 8601 creation timestamp */
   created_at: string;
 }
 
 /**
- * Balance Details
+ * Details for a specific currency balance.
  */
 export interface MalipoBalanceAmount {
+  /** Current numeric amount */
   amount: number;
+  
+  /** Currency code */
   currency: string;
 }
 
 /**
- * Balance Object
+ * Represents the account balance.
  */
 export interface MalipoBalance {
+  /** Object type */
   object: "balance";
+  
+  /** Funds currently available for payout */
   available: MalipoBalanceAmount[];
+  
+  /** Funds currently held (e.g., pending settlement) */
   pending: MalipoBalanceAmount[];
+  
+  /** ISO 8601 timestamp of last update */
   updated_at: string;
 }
 
 /**
- * Webhook Event
+ * Represents a Malipo Webhook Event.
  */
 export interface MalipoEvent {
+  /** Unique Event ID */
   id: string;
+  
+  /** Object type */
   object: "event";
+  
+  /** Event type (e.g., `charge.succeeded`, `refund.failed`) */
   type: string;
+  
+  /** Environment in which the event occurred */
   environment: MalipoEnvironment;
+  
+  /** The data payload associated with the event */
   data: {
-    object: MalipoTransaction;
+    /** The actual resource that was updated */
+    object: MalipoTransaction | MalipoRefund;
   };
+  
+  /** ISO 8601 event timestamp */
   created_at: string;
 }
 
 /**
- * API Error Response
+ * Standard API Error Response.
  */
 export interface MalipoErrorResponse {
   error: {
+    /** Human-readable error message */
     message: string;
+    
+    /** Machine-readable error code */
     code: string;
+    
+    /** Additional error context */
     [key: string]: any;
   };
 }

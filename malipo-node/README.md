@@ -1,6 +1,27 @@
 # Malipo Node.js SDK
 
-The official Node.js library for the Malipo Payment Gateway. Securely accept Mobile Money payments (Vodacom MPesa, Orange Money, Airtel Money) in the DRC.
+The official Node.js library for the [Malipo Payment Gateway](https://malipo.dev). Securely accept Mobile Money payments (Vodacom M-Pesa, Orange Money, Airtel Money) in the DRC with a single integration.
+
+[![npm version](https://img.shields.io/npm/v/malipo-node.svg)](https://www.npmjs.com/package/malipo-node)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+## Table of Contents
+
+- [Installation](#installation)
+- [Initialization](#initialization)
+- [Core Concepts](#core-concepts)
+  - [Environments](#environments)
+  - [Idempotency](#idempotency)
+- [Charges (Direct API)](#charges-direct-api)
+- [Refunds](#refunds)
+- [Hosted Checkout](#hosted-checkout)
+- [Transaction Status](#transaction-status)
+- [Balances](#balances)
+- [Webhooks](#webhooks)
+- [Error Handling](#error-handling)
+- [TypeScript Support](#typescript-support)
+
+---
 
 ## Installation
 
@@ -10,154 +31,172 @@ npm install malipo-node
 yarn add malipo-node
 ```
 
-## Quick Start
+## Initialization
+
+Initialize the client with your secret API key. You can find your keys in the [Malipo Dashboard](https://malipo.dev/api-keys).
 
 ```javascript
 import { Malipo } from 'malipo-node';
 
 const malipo = new Malipo({
-  apiKey: 'sk_test_your_api_key'
+  apiKey: 'sk_test_51Mz...' // Use your secret key
+});
+```
+
+### Configuration Options
+
+| Option | Type | Description |
+| :--- | :--- | :--- |
+| `apiKey` | `string` | **Required.** Your Malipo secret key (`sk_test_...` or `sk_live_...`). |
+| `environment` | `string` | `sandbox` or `live`. Auto-detected from the API key prefix by default. |
+| `baseUrl` | `string` | Optional. Override the API base URL (default: `https://api.malipo.dev`). |
+
+---
+
+## Core Concepts
+
+### Environments
+Malipo provides two environments:
+- **Sandbox**: For testing. No real money is moved. Use `sk_test_` keys.
+- **Live**: For production. Real money transactions. Use `sk_live_` keys.
+
+The SDK automatically detects the environment based on your API key.
+
+### Idempotency
+To prevent duplicate charges or refunds in case of network retries, Malipo supports **Idempotency**.
+- **Mandatory for Live**: You *must* provide an `idempotencyKey` for all live charge and refund requests.
+- **Recommended for Sandbox**: Good practice for testing your retry logic.
+
+---
+
+## Charges (Direct API)
+
+Create a direct Mobile Money charge. This triggers a USSD push (STK Push) on the customer's phone.
+
+```javascript
+const charge = await malipo.charges.create({
+  amount: 50.0,
+  currency: 'USD',
+  phone: '243810000000',
+  network: 'VODACOM_MPESA',
+  description: 'Payment for Order #789',
+  metadata: { internal_id: '789' },
+  payer: {
+    first_name: 'Jane',
+    last_name: 'Doe',
+    email: 'jane.doe@example.com'
+  }
+}, {
+  idempotencyKey: 'order_789_unique_key'
 });
 
-// Create a charge
-try {
-  const charge = await malipo.charges.create({
-    amount: 10,
-    currency: 'USD',
-    phone: '243810000000',
-    network: 'VODACOM_MPESA',
-    description: 'Order #123',
-    payer: {
-      first_name: 'John',
-      last_name: 'Doe',
-      email: 'john.doe@example.com'
-    }
-  }, {
-    idempotencyKey: 'unique_order_id_123' // Highly recommended
-  });
-
-  console.log('Charge initiated:', charge.id);
-  console.log('Status:', charge.status); // 'pending'
-} catch (error) {
-  console.error('Charge failed:', error.message);
-}
+console.log(`Charge ID: ${charge.id}`);
+console.log(`Status: ${charge.status}`); // usually 'pending'
 ```
 
-## Features
+### Parameters (`ChargeCreateParams`)
 
-### 🔐 Idempotency
-Protect against duplicate charges by providing an `idempotencyKey` in the options. If the request is retried with the same key, the SDK will return the original transaction record.
+- `amount` (Number): The amount to charge.
+- `currency` (String): `USD` or `CDF`.
+- `phone` (String): Customer phone in DRC format (e.g., `243...`).
+- `network` (String): `VODACOM_MPESA`, `ORANGE_MONEY`, or `AIRTEL_MONEY`.
+- `description` (String, optional): Description for the transaction.
+- `metadata` (Object, optional): Custom key-value pairs.
+- `payer` (Object, optional): `first_name`, `last_name`, `email`.
 
-### 🔄 Environment Detection
-The SDK automatically switches between `sandbox` and `live` environments based on your API key prefix (`sk_test_` vs `sk_live_`).
+---
 
-### 📊 Balance Check
-Check your available and pending balances for your current environment.
+## Refunds
 
-```javascript
-const balance = await malipo.balance.retrieve();
-console.log('Available USD:', balance.available[0].amount);
-```
-
-### 🔍 Transaction Status
-Retrieve the latest status of any transaction.
-
-```javascript
-const transaction = await malipo.transactions.retrieve('tx_123');
-console.log('Latest status:', transaction.status);
-```
-
-### 💸 Refunds
 Refund a previously successful transaction.
 
 ```javascript
 const refund = await malipo.refunds.create({
-  charge_id: 'tx_123',
-  amount: 5, // Partial refund, or omit for full refund
-  reason: 'Customer return'
+  charge_id: 'ch_123abc',
+  amount: 20.0, // Partial refund (optional)
+  reason: 'Customer requested cancellation'
 }, {
-  idempotencyKey: 'refund_order_123'
+  idempotencyKey: 'refund_order_789'
 });
 
-console.log('Refund status:', refund.status);
+console.log(`Refund Status: ${refund.status}`);
 ```
 
-### 🔗 Hosted Checkout
-Create a checkout session to redirect your customer to a Malipo-hosted payment page.
+---
+
+## Hosted Checkout
+
+Redirect customers to a secure, Malipo-hosted payment page. This is the easiest way to support all networks with zero UI work.
 
 ```javascript
 const session = await malipo.checkoutSessions.create({
-  amount: 25,
+  amount: 25.0,
   currency: 'USD',
-  description: 'Pro Subscription',
-  redirect_url: 'https://your-site.com/success',
-  metadata: { order_id: '123' }
+  description: 'Premium Membership',
+  redirect_url: 'https://mysite.com/success',
+  metadata: { user_id: '456' }
 });
 
 // Redirect the user to this URL
-console.log('Checkout URL:', session.url);
+console.log(`Pay here: ${session.url}`);
 ```
 
-## API Reference
+---
 
-### `new Malipo(config)`
-- `apiKey`: (Required) Your Malipo secret key.
-- `environment`: (Optional) `sandbox` or `live`. Auto-detected by default.
-- `baseUrl`: (Optional) Override the default API base URL.
+## Transaction Status
 
-### `malipo.charges.create(params, options)`
-- `amount`: Number.
-- `currency`: String (`USD` or `CDF`).
-- `phone`: String (DRC MSISDN format).
-- `network`: `VODACOM_MPESA`, `ORANGE_MONEY`, or `AIRTEL_MONEY`.
-- `description`: (Optional) String.
-- `metadata`: (Optional) Object.
-- `payer`: (Optional) Object with `first_name`, `last_name`, and `email`.
-- `idempotencyKey`: (Optional) Unique string for request deduplication.
-
-### `malipo.transactions.retrieve(id)`
-- `id`: Transaction ID.
-
-### `malipo.refunds.create(params, options)`
-- `charge_id`: (Required) ID of the charge to refund.
-- `amount`: (Optional) Amount to refund.
-- `reason`: (Optional) Reason for refund.
-- `metadata`: (Optional) Object.
-- `idempotencyKey`: (Optional) Unique string for request deduplication.
-
-### `malipo.checkoutSessions.create(params)`
-- `amount`: (Required) Number.
-- `currency`: (Required) `USD` or `CDF`.
-- `description`: (Optional) String.
-- `redirect_url`: (Optional) Success redirect URL.
-- `expires_at`: (Optional) ISO Date string.
-- `metadata`: (Optional) Object.
-
-### `malipo.balance.retrieve()`
-- Returns balance details for the current environment.
-
-### `malipo.webhooks.constructEvent(payload, signature, secret)`
-- `payload`: Raw string body of the request.
-- `signature`: The `X-Webhook-Signature` header value.
-- `secret`: Your webhook signing secret from the dashboard.
-- **Returns**: A verified `MalipoEvent` object or throws an error if verification fails.
-
-## Webhooks Example (Express)
+Retrieve the latest status of any charge or refund.
 
 ```javascript
+const transaction = await malipo.transactions.retrieve('ch_123abc');
+
+if (transaction.status === 'succeeded') {
+  console.log('Payment completed!');
+  console.log('Settlement:', transaction.settlement_amount, transaction.settlement_currency);
+}
+```
+
+---
+
+## Balances
+
+Retrieve your available and pending balances for the current environment.
+
+```javascript
+const balance = await malipo.balance.retrieve();
+
+balance.available.forEach(bal => {
+  console.log(`Available: ${bal.amount} ${bal.currency}`);
+});
+```
+
+---
+
+## Webhooks
+
+Malipo sends webhooks for asynchronous events. Use the SDK to verify the signature and ensure the request came from Malipo.
+
+```javascript
+// Express Example
 app.post('/webhooks/malipo', express.raw({ type: 'application/json' }), (req, res) => {
   const signature = req.header('x-webhook-signature');
+  const secret = process.env.MALIPO_WEBHOOK_SECRET;
 
   try {
     const event = malipo.webhooks.constructEvent(
       req.body.toString(), 
       signature, 
-      process.env.MALIPO_WEBHOOK_SECRET
+      secret
     );
 
-    if (event.type === 'charge.succeeded') {
-      const charge = event.data.object;
-      console.log(`Payment successful: ${charge.id}`);
+    switch (event.type) {
+      case 'charge.succeeded':
+        const charge = event.data.object;
+        // Fulfill the order
+        break;
+      case 'refund.succeeded':
+        // Handle successful refund
+        break;
     }
 
     res.sendStatus(200);
@@ -167,5 +206,47 @@ app.post('/webhooks/malipo', express.raw({ type: 'application/json' }), (req, re
 });
 ```
 
+---
+
+## Error Handling
+
+The SDK throws `MalipoError` for API failures.
+
+```javascript
+try {
+  await malipo.charges.create({ ... });
+} catch (error) {
+  if (error instanceof MalipoError) {
+    console.error('API Error:', error.message);
+    console.error('Status:', error.status); // HTTP Status Code
+    console.error('Code:', error.code);     // Malipo Error Code (e.g., 'insufficient_funds')
+  } else {
+    console.error('Generic Error:', error.message);
+  }
+}
+```
+
+---
+
+## TypeScript Support
+
+The SDK is written in TypeScript and includes full type definitions.
+
+```typescript
+import { Malipo, ChargeCreateParams, MalipoTransaction } from 'malipo-node';
+
+const params: ChargeCreateParams = {
+  amount: 10,
+  currency: 'USD',
+  phone: '243810000000',
+  network: 'VODACOM_MPESA'
+};
+
+const result: MalipoTransaction = await malipo.charges.create(params);
+```
+
+---
+
 ## License
-MIT
+
+MIT © [Malipo Team](https://malipo.dev)
