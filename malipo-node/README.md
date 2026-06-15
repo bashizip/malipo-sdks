@@ -67,6 +67,37 @@ const transaction = await malipo.transactions.retrieve('tx_123');
 console.log('Latest status:', transaction.status);
 ```
 
+### 💸 Refunds
+Refund a previously successful transaction.
+
+```javascript
+const refund = await malipo.refunds.create({
+  charge_id: 'tx_123',
+  amount: 5, // Partial refund, or omit for full refund
+  reason: 'Customer return'
+}, {
+  idempotencyKey: 'refund_order_123'
+});
+
+console.log('Refund status:', refund.status);
+```
+
+### 🔗 Hosted Checkout
+Create a checkout session to redirect your customer to a Malipo-hosted payment page.
+
+```javascript
+const session = await malipo.checkoutSessions.create({
+  amount: 25,
+  currency: 'USD',
+  description: 'Pro Subscription',
+  redirect_url: 'https://your-site.com/success',
+  metadata: { order_id: '123' }
+});
+
+// Redirect the user to this URL
+console.log('Checkout URL:', session.url);
+```
+
 ## API Reference
 
 ### `new Malipo(config)`
@@ -86,6 +117,21 @@ console.log('Latest status:', transaction.status);
 
 ### `malipo.transactions.retrieve(id)`
 - `id`: Transaction ID.
+
+### `malipo.refunds.create(params, options)`
+- `charge_id`: (Required) ID of the charge to refund.
+- `amount`: (Optional) Amount to refund.
+- `reason`: (Optional) Reason for refund.
+- `metadata`: (Optional) Object.
+- `idempotencyKey`: (Optional) Unique string for request deduplication.
+
+### `malipo.checkoutSessions.create(params)`
+- `amount`: (Required) Number.
+- `currency`: (Required) `USD` or `CDF`.
+- `description`: (Optional) String.
+- `redirect_url`: (Optional) Success redirect URL.
+- `expires_at`: (Optional) ISO Date string.
+- `metadata`: (Optional) Object.
 
 ### `malipo.balance.retrieve()`
 - Returns balance details for the current environment.

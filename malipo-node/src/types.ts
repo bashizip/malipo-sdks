@@ -6,7 +6,7 @@ export type MalipoNetwork = "VODACOM_MPESA" | "AIRTEL_MONEY" | "ORANGE_MONEY";
 /**
  * Transaction Status
  */
-export type MalipoTransactionStatus = "pending" | "succeeded" | "failed" | "expired";
+export type MalipoTransactionStatus = "pending" | "succeeded" | "failed" | "declined" | "expired";
 
 /**
  * Environment
@@ -98,9 +98,12 @@ export interface ChargeCreateParams {
  */
 export interface MalipoTransaction {
   id: string;
-  object: "transaction";
+  object: "charge" | "transaction";
   amount: number;
   currency: string;
+  requested_currency: string;
+  settlement_currency: string | null;
+  settlement_amount: number | null;
   status: MalipoTransactionStatus;
   phone: string;
   network: MalipoNetwork;
@@ -110,6 +113,105 @@ export interface MalipoTransaction {
   updated_at: string;
   failure_reason?: string;
   failure_code?: string;
+}
+
+/**
+ * Refund Creation Parameters
+ */
+export interface RefundCreateParams {
+  /**
+   * The ID of the charge to refund
+   */
+  charge_id: string;
+
+  /**
+   * Optional amount to refund. If not provided, the full charge amount will be refunded.
+   */
+  amount?: number;
+
+  /**
+   * Optional reason for the refund
+   */
+  reason?: string;
+
+  /**
+   * Optional merchant-defined metadata
+   */
+  metadata?: Record<string, any>;
+}
+
+/**
+ * Refund Record
+ */
+export interface MalipoRefund {
+  id: string;
+  object: "refund";
+  amount: number;
+  currency: string;
+  requested_currency: string;
+  settlement_currency: string | null;
+  settlement_amount: number | null;
+  status: MalipoTransactionStatus;
+  phone: string;
+  network: MalipoNetwork;
+  environment: MalipoEnvironment;
+  metadata: Record<string, any>;
+  created_at: string;
+  updated_at: string;
+  failure_reason?: string;
+  failure_code?: string;
+}
+
+/**
+ * Checkout Session Creation Parameters
+ */
+export interface CheckoutSessionCreateParams {
+  /**
+   * Amount to charge
+   */
+  amount: number;
+
+  /**
+   * Currency code (e.g., "USD", "CDF")
+   */
+  currency: string;
+
+  /**
+   * Optional description for the checkout page
+   */
+  description?: string;
+
+  /**
+   * Optional URL to redirect the customer to after payment
+   */
+  redirect_url?: string;
+
+  /**
+   * Optional expiry date for the session
+   */
+  expires_at?: string;
+
+  /**
+   * Optional merchant-defined metadata
+   */
+  metadata?: Record<string, any>;
+}
+
+/**
+ * Checkout Session Record
+ */
+export interface MalipoCheckoutSession {
+  id: string;
+  object: "checkout_session";
+  token: string;
+  url: string;
+  amount: number;
+  currency: string;
+  description: string | null;
+  status: "active" | "completed" | "expired";
+  environment: MalipoEnvironment;
+  expires_at: string;
+  created_at: string;
 }
 
 /**

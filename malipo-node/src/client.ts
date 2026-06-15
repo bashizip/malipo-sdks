@@ -1,10 +1,14 @@
 import type {
   ChargeCreateParams,
+  CheckoutSessionCreateParams,
   MalipoBalance,
+  MalipoCheckoutSession,
   MalipoConfig,
   MalipoEnvironment,
   MalipoErrorResponse,
+  MalipoRefund,
   MalipoTransaction,
+  RefundCreateParams,
 } from "./types";
 import { MalipoError } from "./errors";
 
@@ -75,6 +79,34 @@ export class Malipo {
         headers["Idempotency-Key"] = options.idempotencyKey;
       }
       return this.request<MalipoTransaction>("POST", "/charge", params, headers);
+    }
+  };
+
+  /**
+   * Refund Management
+   */
+  public readonly refunds = {
+    /**
+     * Create a new refund
+     */
+    create: async (params: RefundCreateParams, options?: { idempotencyKey?: string }): Promise<MalipoRefund> => {
+      const headers: Record<string, string> = {};
+      if (options?.idempotencyKey) {
+        headers["Idempotency-Key"] = options.idempotencyKey;
+      }
+      return this.request<MalipoRefund>("POST", "/refund", params, headers);
+    }
+  };
+
+  /**
+   * Checkout Session Management (Hosted Checkout)
+   */
+  public readonly checkoutSessions = {
+    /**
+     * Create a new checkout session
+     */
+    create: async (params: CheckoutSessionCreateParams): Promise<MalipoCheckoutSession> => {
+      return this.request<MalipoCheckoutSession>("POST", "/checkout-session", params);
     }
   };
 

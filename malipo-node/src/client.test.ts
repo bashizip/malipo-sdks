@@ -83,6 +83,68 @@ describe("Malipo SDK Client", () => {
     );
   });
 
+  it("should create a refund with idempotency key", async () => {
+    const refundParams = {
+      charge_id: "tx_123",
+      amount: 5,
+      reason: "Customer requested refund",
+    };
+    const mockResponse = {
+      id: "re_123",
+      object: "refund",
+      status: "succeeded",
+      amount: refundParams.amount,
+    };
+
+    (global.fetch as any).mockResolvedValue({
+      ok: true,
+      json: async () => mockResponse,
+    });
+
+    const result = await client.refunds.create(refundParams, {
+      idempotencyKey: "refund_key",
+    });
+
+    expect(result.id).toBe("re_123");
+    expect(global.fetch).toHaveBeenCalledWith(
+      expect.stringContaining("/refund"),
+      expect.objectContaining({
+        method: "POST",
+        headers: expect.objectContaining({
+          "Idempotency-Key": "refund_key",
+        }),
+      })
+    );
+  });
+
+  it("should create a checkout session", async () => {
+    const sessionParams = {
+      amount: 25,
+      currency: "USD",
+      description: "Donation",
+    };
+    const mockResponse = {
+      id: "cs_123",
+      object: "checkout_session",
+      url: "https://checkout.malipo.dev/cs_123",
+      amount: sessionParams.amount,
+    };
+
+    (global.fetch as any).mockResolvedValue({
+      ok: true,
+      json: async () => mockResponse,
+    });
+
+    const result = await client.checkoutSessions.create(sessionParams);
+
+    expect(result.id).toBe("cs_123");
+    expect(result.url).toContain("/cs_123");
+    expect(global.fetch).toHaveBeenCalledWith(
+      expect.stringContaining("/checkout-session"),
+      expect.objectContaining({ method: "POST" })
+    );
+  });
+
   it("should retrieve balance for the correct environment", async () => {
     const mockResponse = { object: "balance", available: [], pending: [] };
 
