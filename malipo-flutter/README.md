@@ -8,7 +8,7 @@ Add `malipo` to your `pubspec.yaml` dependencies:
 
 ```yaml
 dependencies:
-  malipo: ^1.0.0
+  malipo: ^1.1.0
 ```
 
 Or run this command:
@@ -86,6 +86,39 @@ Retrieve the latest status of any transaction.
 ```dart
 final transaction = await malipo.transactions.retrieve("tx_123");
 print('Latest status: ${transaction.status.value}');
+```
+
+### 💸 Refunds
+Refund a previously successful transaction.
+
+```dart
+final refund = await malipo.refunds.create(
+  RefundCreateParams(
+    chargeId: 'tx_123',
+    amount: 5.0, // Partial refund, or omit for full refund
+    reason: 'Customer return',
+  ),
+  idempotencyKey: 'refund_order_123',
+);
+
+print('Refund status: ${refund.status.value}');
+```
+
+### 🔗 Hosted Checkout
+Create a checkout session to redirect your customer to a Malipo-hosted payment page.
+
+```dart
+final session = await malipo.checkoutSessions.create(
+  CheckoutSessionCreateParams(
+    amount: 25.0,
+    currency: 'USD',
+    description: 'Pro Subscription',
+    redirectUrl: 'https://your-site.com/success',
+  ),
+);
+
+// Redirect the user to this URL using a package like url_launcher
+print('Checkout URL: ${session.url}');
 ```
 
 ## Error Handling

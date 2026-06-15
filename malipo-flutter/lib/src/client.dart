@@ -4,6 +4,8 @@ import 'exceptions.dart';
 import 'resources/charges.dart';
 import 'resources/transactions.dart';
 import 'resources/balance.dart';
+import 'resources/refunds.dart';
+import 'resources/checkout_sessions.dart';
 import 'resources/webhooks.dart';
 
 class Malipo {
@@ -15,6 +17,8 @@ class Malipo {
   late final ChargesResource charges;
   late final TransactionsResource transactions;
   late final BalanceResource balance;
+  late final RefundsResource refunds;
+  late final CheckoutSessionsResource checkoutSessions;
   late final WebhooksResource webhooks;
 
   Malipo({required this.apiKey, String? environment, String? baseUrl})
@@ -29,6 +33,8 @@ class Malipo {
     charges = ChargesResource(this);
     transactions = TransactionsResource(this);
     balance = BalanceResource(this);
+    refunds = RefundsResource(this);
+    checkoutSessions = CheckoutSessionsResource(this);
     webhooks = WebhooksResource();
   }
 
@@ -42,7 +48,7 @@ class Malipo {
     final reqHeaders = {
       'Authorization': 'Bearer $apiKey',
       'Content-Type': 'application/json',
-      'X-Client-Info': 'malipo-flutter/1.0.0',
+      'X-Client-Info': 'malipo-flutter/1.1.0',
       ...?headers,
     };
 

@@ -1,6 +1,6 @@
 name: malipo
 description: Official Flutter/Dart SDK for the Malipo Payment Gateway. Securely accept Mobile Money payments (Vodacom MPesa, Orange Money, Airtel Money) in the DRC.
-version: 1.0.0
+version: 1.1.0
 homepage: https://github.com/malipo/malipo-flutter
 repository: https://github.com/malipo/malipo-flutter
 issue_tracker: https://github.com/malipo/malipo-flutter/issues
