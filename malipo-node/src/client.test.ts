@@ -14,6 +14,14 @@ describe("Malipo SDK Client", () => {
     client = new Malipo({ apiKey });
   });
 
+  const mockJsonResponse = (data: any, ok = true, status = 200) => ({
+    ok,
+    status,
+    headers: { get: (name: string) => name.toLowerCase() === "content-type" ? "application/json" : null },
+    json: async () => data,
+    text: async () => JSON.stringify(data),
+  });
+
   it("should initialize with correct environment based on API key", () => {
     expect(client["environment"]).toBe("sandbox");
 
@@ -41,10 +49,7 @@ describe("Malipo SDK Client", () => {
       currency: chargeParams.currency,
     };
 
-    (global.fetch as any).mockResolvedValue({
-      ok: true,
-      json: async () => mockResponse,
-    });
+    (global.fetch as any).mockResolvedValue(mockJsonResponse(mockResponse));
 
     const result = await client.charges.create(chargeParams, {
       idempotencyKey: "unique_key",
@@ -52,7 +57,7 @@ describe("Malipo SDK Client", () => {
 
     expect(result.id).toBe("tx_123");
     expect(global.fetch).toHaveBeenCalledWith(
-      expect.stringContaining("/charge"),
+      expect.stringContaining("/v1/charge"),
       expect.objectContaining({
         method: "POST",
         headers: expect.objectContaining({
@@ -69,16 +74,13 @@ describe("Malipo SDK Client", () => {
   it("should retrieve a transaction", async () => {
     const mockResponse = { id: "tx_123", status: "succeeded" };
 
-    (global.fetch as any).mockResolvedValue({
-      ok: true,
-      json: async () => mockResponse,
-    });
+    (global.fetch as any).mockResolvedValue(mockJsonResponse(mockResponse));
 
     const result = await client.transactions.retrieve("tx_123");
 
     expect(result.id).toBe("tx_123");
     expect(global.fetch).toHaveBeenCalledWith(
-      expect.stringContaining("/transaction-status?id=tx_123"),
+      expect.stringContaining("/v1/transaction-status?id=tx_123"),
       expect.objectContaining({ method: "GET" })
     );
   });
@@ -96,10 +98,7 @@ describe("Malipo SDK Client", () => {
       amount: refundParams.amount,
     };
 
-    (global.fetch as any).mockResolvedValue({
-      ok: true,
-      json: async () => mockResponse,
-    });
+    (global.fetch as any).mockResolvedValue(mockJsonResponse(mockResponse));
 
     const result = await client.refunds.create(refundParams, {
       idempotencyKey: "refund_key",
@@ -107,7 +106,7 @@ describe("Malipo SDK Client", () => {
 
     expect(result.id).toBe("re_123");
     expect(global.fetch).toHaveBeenCalledWith(
-      expect.stringContaining("/refund"),
+      expect.stringContaining("/v1/refund"),
       expect.objectContaining({
         method: "POST",
         headers: expect.objectContaining({
@@ -130,17 +129,14 @@ describe("Malipo SDK Client", () => {
       amount: sessionParams.amount,
     };
 
-    (global.fetch as any).mockResolvedValue({
-      ok: true,
-      json: async () => mockResponse,
-    });
+    (global.fetch as any).mockResolvedValue(mockJsonResponse(mockResponse));
 
     const result = await client.checkoutSessions.create(sessionParams);
 
     expect(result.id).toBe("cs_123");
     expect(result.url).toContain("/cs_123");
     expect(global.fetch).toHaveBeenCalledWith(
-      expect.stringContaining("/checkout-session"),
+      expect.stringContaining("/v1/checkout-session"),
       expect.objectContaining({ method: "POST" })
     );
   });
@@ -148,15 +144,12 @@ describe("Malipo SDK Client", () => {
   it("should retrieve balance for the correct environment", async () => {
     const mockResponse = { object: "balance", available: [], pending: [] };
 
-    (global.fetch as any).mockResolvedValue({
-      ok: true,
-      json: async () => mockResponse,
-    });
+    (global.fetch as any).mockResolvedValue(mockJsonResponse(mockResponse));
 
     await client.balance.retrieve();
 
     expect(global.fetch).toHaveBeenCalledWith(
-      expect.stringContaining("/sandbox-balance"),
+      expect.stringContaining("/v1/sandbox-balance"),
       expect.any(Object)
     );
   });
@@ -166,11 +159,7 @@ describe("Malipo SDK Client", () => {
       error: { message: "Invalid amount", code: "invalid_amount" },
     };
 
-    (global.fetch as any).mockResolvedValue({
-      ok: false,
-      status: 400,
-      json: async () => errorResponse,
-    });
+    (global.fetch as any).mockResolvedValue(mockJsonResponse(errorResponse, false, 400));
 
     try {
       await client.charges.create({

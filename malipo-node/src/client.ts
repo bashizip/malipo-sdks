@@ -28,7 +28,7 @@ export class Malipo {
     this.environment = config.environment || (this.apiKey.startsWith("sk_live_") ? "live" : "sandbox");
     
     // Set base URL
-    this.baseUrl = config.baseUrl || "https://api.malipo.dev";
+    this.baseUrl = config.baseUrl || "https://api.malipo.dev/v1";
   }
 
   private async request<T>(
@@ -41,7 +41,7 @@ export class Malipo {
     const defaultHeaders = {
       "Authorization": `Bearer ${this.apiKey}`,
       "Content-Type": "application/json",
-      "X-Client-Info": "malipo-node/1.0.0",
+      "X-Client-Info": "malipo-node/1.2.1",
       ...headers,
     };
 
@@ -51,15 +51,26 @@ export class Malipo {
       body: body ? JSON.stringify(body) : undefined,
     });
 
-    const data = await response.json();
+    let data: any;
+    const contentType = response.headers.get("content-type");
+
+    try {
+      if (contentType && contentType.includes("application/json")) {
+        data = await response.json();
+      } else {
+        data = await response.text();
+      }
+    } catch (e) {
+      data = null;
+    }
 
     if (!response.ok) {
-      const errorResponse = data as MalipoErrorResponse;
+      const errorResponse = typeof data === "object" && data !== null ? (data as MalipoErrorResponse) : null;
       throw new MalipoError(
-        errorResponse.error?.message || "An unexpected error occurred",
+        errorResponse?.error?.message || (typeof data === "string" && data ? data : "An unexpected error occurred"),
         response.status,
-        errorResponse.error?.code,
-        errorResponse.error
+        errorResponse?.error?.code,
+        errorResponse?.error
       );
     }
 
