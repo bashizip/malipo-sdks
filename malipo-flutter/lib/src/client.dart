@@ -25,7 +25,7 @@ class Malipo {
     : environment =
           environment ?? (apiKey.startsWith('sk_live_') ? 'live' : 'sandbox'),
       baseUrl =
-          baseUrl ?? 'https://api.malipo.dev' {
+          baseUrl ?? 'https://api.malipo.dev/v1' {
     if (apiKey.isEmpty) {
       throw ArgumentError('Malipo API Key is required.');
     }
@@ -48,7 +48,7 @@ class Malipo {
     final reqHeaders = {
       'Authorization': 'Bearer $apiKey',
       'Content-Type': 'application/json',
-      'X-Client-Info': 'malipo-flutter/1.1.0',
+      'X-Client-Info': 'malipo-flutter/1.1.1',
       ...?headers,
     };
 
@@ -68,15 +68,24 @@ class Malipo {
         throw ArgumentError('Unsupported HTTP method: $method');
       }
 
-      final responseBody = response.body.isNotEmpty
-          ? jsonDecode(response.body)
-          : {};
+      dynamic responseBody;
+      try {
+        responseBody = response.body.isNotEmpty
+            ? jsonDecode(response.body)
+            : {};
+      } catch (e) {
+        responseBody = response.body;
+      }
 
       if (response.statusCode >= 400) {
-        final errorData = responseBody['error'] ?? {};
+        final errorData = responseBody is Map ? (responseBody['error'] ?? {}) : {};
         final Map<String, dynamic> errorMap = errorData is Map
             ? Map<String, dynamic>.from(errorData)
             : {'message': errorData.toString()};
+
+        if (errorMap['message'] == null && responseBody is String) {
+          errorMap['message'] = responseBody;
+        }
 
         throw MalipoException(
           message: errorMap['message'] ?? 'An unexpected error occurred',

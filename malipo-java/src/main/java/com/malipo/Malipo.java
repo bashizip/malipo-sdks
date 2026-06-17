@@ -57,7 +57,7 @@ public class Malipo {
                     .uri(URI.create(url))
                     .header("Authorization", "Bearer " + config.getApiKey())
                     .header("Content-Type", "application/json")
-                    .header("X-Client-Info", "malipo-java/1.0.0");
+                    .header("X-Client-Info", "malipo-java/1.0.1");
 
             headers.forEach(requestBuilder::header);
 
@@ -87,13 +87,20 @@ public class Malipo {
         }
     }
 
-    private void handleError(HttpResponse<String> response) throws JsonProcessingException {
-        Map<String, Object> errorData = objectMapper.readValue(response.body(), Map.class);
-        Map<String, Object> error = (Map<String, Object>) errorData.get("error");
+    private void handleError(HttpResponse<String> response) {
+        Map<String, Object> errorData = null;
+        try {
+            errorData = objectMapper.readValue(response.body(), Map.class);
+        } catch (IOException e) {
+            // Not a JSON response
+        }
+
+        Map<String, Object> error = errorData != null ? (Map<String, Object>) errorData.get("error") : null;
         
-        String message = error != null ? (String) error.get("message") : "An unexpected error occurred";
+        String message = error != null ? (String) error.get("message") : 
+                        (response.body() != null && !response.body().isEmpty() ? response.body() : "An unexpected error occurred");
         String code = error != null ? (String) error.get("code") : null;
         
-        throw new MalipoException(message, response.statusCode(), code, error);
+        throw new MalipoException(message, response.statusCode(), code, error != null ? error : errorData);
     }
 }

@@ -29,14 +29,14 @@ class Malipo
 
         $this->apiKey = $apiKey;
         $this->environment = $environment ?: ($this->isLiveKey($apiKey) ? 'live' : 'sandbox');
-        $this->baseUrl = $baseUrl ?: 'https://api.malipo.dev';
+        $this->baseUrl = $baseUrl ?: 'https://api.malipo.dev/v1';
 
         $this->client = new Client([
             'base_uri' => rtrim($this->baseUrl, '/') . '/',
             'headers' => [
                 'Authorization' => 'Bearer ' . $this->apiKey,
                 'Content-Type' => 'application/json',
-                'X-Client-Info' => 'malipo-php/1.0.0',
+                'X-Client-Info' => 'malipo-php/1.0.1',
             ],
         ]);
 
@@ -74,14 +74,23 @@ class Malipo
             $endpoint = ltrim($endpoint, '/');
 
             $response = $this->client->request($method, $endpoint, $options);
-            return json_decode($response->getBody()->getContents(), true);
+            $contents = $response->getBody()->getContents();
+            $decoded = json_decode($contents, true);
+            
+            return $decoded !== null ? $decoded : $contents;
 
         } catch (GuzzleException $e) {
             $response = $e->getResponse();
-            $data = $response ? json_decode($response->getBody()->getContents(), true) : [];
+            $contents = $response ? $response->getBody()->getContents() : '';
+            $data = json_decode($contents, true);
+            
             $error = $data['error'] ?? [];
             if (!is_array($error)) {
-                $error = ['message' => $error];
+                $error = ['message' => (string)$error];
+            }
+
+            if (empty($error['message']) && !empty($contents) && $data === null) {
+                $error['message'] = $contents;
             }
 
             throw new MalipoException(

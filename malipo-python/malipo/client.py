@@ -25,7 +25,7 @@ class Malipo:
         else:
             self.environment = "live" if api_key.startswith("sk_live_") else "sandbox"
             
-        self.base_url = base_url or "https://api.malipo.dev"
+        self.base_url = base_url or "https://api.malipo.dev/v1"
         
         # Initialize resources
         self.charges = ChargesResource(self)
@@ -39,7 +39,7 @@ class Malipo:
         default_headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",
-            "X-Client-Info": "malipo-python/1.0.0"
+            "X-Client-Info": "malipo-python/1.0.1"
         }
         if headers:
             default_headers.update(headers)
@@ -53,20 +53,26 @@ class Malipo:
                 headers=default_headers
             )
             
-            data = response.json()
+            try:
+                data = response.json()
+            except json.JSONDecodeError:
+                data = response.text
             
             if not response.ok:
-                error_data = data.get("error", {})
+                error_data = data if isinstance(data, dict) else {}
+                error_payload = error_data.get("error", {})
                 raise MalipoError(
-                    message=error_data.get("message", "An unexpected error occurred"),
+                    message=error_payload.get("message", data if isinstance(data, str) and data else "An unexpected error occurred"),
                     status_code=response.status_code,
-                    code=error_data.get("code"),
-                    details=error_data
+                    code=error_payload.get("code"),
+                    details=error_payload if error_payload else error_data
                 )
                 
             return data
             
         except requests.exceptions.RequestException as e:
+            if isinstance(e, MalipoError):
+                raise e
             raise MalipoError(f"Network error: {str(e)}")
 
 class ChargesResource:
