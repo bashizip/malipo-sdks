@@ -37,13 +37,14 @@ python3 -m twine upload dist/*
 **Platform:** [Packagist](https://packagist.org/)
 **Version:** 1.0.1
 
-PHP/Composer libraries are typically synced via Git tags.
+The PHP SDK uses a subtree split into a dedicated read-only repository (`bashizip/malipo-php`) for Packagist. Versioning is done by prefixing tags in the monorepo.
 ```bash
-# Tag the version
-git tag v1.0.1
-# Push the tag to GitHub (Packagist will auto-update if configured via webhook)
-git push origin v1.0.1
+# Tag the monorepo with the 'php-' prefix
+git tag php-v1.0.1
+# Push the tag to GitHub
+git push origin php-v1.0.1
 ```
+A GitHub action will automatically sync the contents to the read-only repository and tag it as `v1.0.1`, which triggers Packagist.
 
 ---
 
