@@ -15,7 +15,13 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Monorepo Split to Read-Only Repo
+      - name: Extract Tag
+        id: extract_tag
+        if: startsWith(github.ref, 'refs/tags/php-v')
+        run: echo "TAG_NAME=${GITHUB_REF#refs/tags/php-}" >> $GITHUB_ENV
+
+      - name: Monorepo Split to Read-Only Repo (Branch)
+        if: "!startsWith(github.ref, 'refs/tags/php-v')"
         uses: danharrin/monorepo-split-github-action@v2.3.0
         with:
           package_directory: 'malipo-php'
@@ -29,9 +35,18 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.PHP_SPLIT_PAT }}
 
-      - name: Split Tag
+      - name: Monorepo Split to Read-Only Repo (Tag)
         if: startsWith(github.ref, 'refs/tags/php-v')
-        run: |
-          TAG_NAME=${GITHUB_REF#refs/tags/php-}
-          git tag $TAG_NAME
-          git push https://${{ secrets.PHP_SPLIT_PAT }}@github.com/bashizip/malipo-php.git $TAG_NAME
+        uses: danharrin/monorepo-split-github-action@v2.3.0
+        with:
+          package_directory: 'malipo-php'
+          repository_organization: 'bashizip'
+          repository_name: 'malipo-php'
+          target_branch: 'main'
+          tag: ${{ env.TAG_NAME }}
+          user_name: "github-actions[bot]"
+          user_email: "github-actions[bot]@users.noreply.github.com"
+          branch: main
+          commit_message: "chore: release malipo-php subtree"
+        env:
+          GITHUB_TOKEN: ${{ secrets.PHP_SPLIT_PAT }}
