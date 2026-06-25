@@ -1,3 +1,9 @@
+## 1.1.1
+
+*   **Bug Fix**: Corrected base URL to include `/v1/` prefix for all API requests.
+*   **Improvement**: Enhanced error handling to gracefully manage non-JSON responses from the API (e.g., HTML 404 pages), preventing JSON parsing errors.
+*   Updated `X-Client-Info` to `malipo-flutter/1.1.1`.
+
 ## 1.1.0
 
 * Added support for **Refunds API**: Initiate full or partial refunds for successful transactions.
