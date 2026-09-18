@@ -4,7 +4,7 @@ Follow these instructions to publish the updated versions of the Malipo SDKs to 
 
 ## 1. Node.js (`malipo-node`)
 **Platform:** [NPM](https://www.npmjs.com/)
-**Version:** 1.2.1
+**Version:** 1.2.4
 
 ```bash
 cd malipo-node
@@ -75,7 +75,7 @@ mvn clean deploy -P release
 ---
 
 ## Summary of Versions to Publish
-- **Node.js**: v1.2.1
+- **Node.js**: v1.2.4
 - **Python**: v1.0.1
 - **PHP**: v1.0.1
 - **Flutter**: v1.1.1

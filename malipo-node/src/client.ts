@@ -13,6 +13,7 @@ import type {
   RefundCreateParams,
 } from "./types";
 import { MalipoError } from "./errors";
+import { createHmac, timingSafeEqual } from "node:crypto";
 
 export class Malipo {
   private apiKey: string;
@@ -43,7 +44,7 @@ export class Malipo {
     const defaultHeaders = {
       "Authorization": `Bearer ${this.apiKey}`,
       "Content-Type": "application/json",
-      "X-Client-Info": "malipo-node/1.2.1",
+      "X-Client-Info": "malipo-node/1.2.4",
       ...headers,
     };
 
@@ -167,10 +168,6 @@ export class Malipo {
       timestampOrOptions?: string | WebhookConstructEventOptions,
       toleranceMs: number = 300000
     ): MalipoEvent => {
-      // Import crypto dynamically to support environment-specific imports if needed,
-      // but here we use the standard Node.js approach as this is a Node SDK.
-      const { createHmac, timingSafeEqual } = require("node:crypto");
-      
       if (!payload || !signature || !secret) {
         throw new Error("Missing payload, signature, or secret for webhook verification.");
       }
