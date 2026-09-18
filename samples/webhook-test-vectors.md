@@ -3,8 +3,8 @@
 Verified reference values for the webhook `constructEvent` / `construct_event` helpers.
 Use these to check an integration without touching the live API: nothing here calls Malipo.
 
-All values below were reproduced with the SDKs in this repo (Node 1.2.4, Python 1.0.1,
-PHP 1.0.1, Flutter/Dart 1.1.1, Java 1.0.1).
+All values below were reproduced with the SDKs in this repo (Node 1.2.4, Python 1.0.2,
+PHP 1.0.3, Flutter/Dart 1.1.2, Java 1.0.1).
 
 ## How the signature is built
 
@@ -67,15 +67,17 @@ openssl dgst -sha256 -hmac 'whsec_example_only' body.json
 | SDK | Timestamped signature | Payload-only signature | Notes |
 | --- | --- | --- | --- |
 | Node 1.2.4 (CJS + ESM) | passes | passes | 4th arg `timestamp`, or `{ timestamp, toleranceMs: 0 }` for a frozen vector |
-| Python 1.0.1 | passes | passes | `timestamp=..., tolerance_ms=0` for a frozen vector |
-| PHP 1.0.1 | passes | passes | 4th arg `$timestamp`, 5th `$toleranceMs` (`0` for a frozen vector) |
-| Flutter/Dart 1.1.1 | passes | passes | 4th arg `timestamp`, 5th `toleranceMs` (`0` for a frozen vector) |
+| Python 1.0.2 | passes | passes | `timestamp=..., tolerance_ms=0` for a frozen vector |
+| PHP 1.0.3 | passes | passes | 4th arg `$timestamp`, 5th `$toleranceMs` (`0` for a frozen vector) |
+| Flutter/Dart 1.1.2 | passes | passes | 4th arg `timestamp`, 5th `toleranceMs` (`0` for a frozen vector) |
 | Java 1.0.1 | passes | passes | `constructEvent(body, sig, secret, timestamp, 0L)` for a frozen vector |
 
 Each SDK's test suite pins the signatures above as literals, so a change to any one
-implementation fails that SDK's tests rather than shipping. The Python, PHP, Flutter and
-Java version numbers shown are the current released versions - the timestamp support is
-in the working tree and ships with their next version bump.
+implementation fails that SDK's tests rather than shipping.
+
+The versions shown are the ones carrying the timestamp support. Java is the exception:
+`com.malipo:malipo-java` has no Maven Central release at all, because `pom.xml` still has
+no release plumbing.
 
 ## Common causes of signature mismatch
 
