@@ -24,6 +24,15 @@
   ],
   "author": "Malipo Team",
   "license": "MIT",
+  "homepage": "https://docs.malipo.dev/sdk/node/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bashizip/malipo-sdks.git",
+    "directory": "malipo-node"
+  },
+  "bugs": {
+    "url": "https://github.com/bashizip/malipo-sdks/issues"
+  },
   "type": "module",
   "devDependencies": {
     "@types/node": "^22.16.5",

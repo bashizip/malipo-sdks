@@ -7,6 +7,21 @@
     <artifactId>malipo-java</artifactId>
     <version>1.0.1</version>
 
+    <name>Malipo Java SDK</name>
+    <description>Official Java SDK for the Malipo Payment Gateway</description>
+    <url>https://docs.malipo.dev/sdk/java/</url>
+
+    <scm>
+        <url>https://github.com/bashizip/malipo-sdks/tree/main/malipo-java</url>
+        <connection>scm:git:https://github.com/bashizip/malipo-sdks.git</connection>
+        <developerConnection>scm:git:git@github.com:bashizip/malipo-sdks.git</developerConnection>
+    </scm>
+
+    <issueManagement>
+        <system>GitHub Issues</system>
+        <url>https://github.com/bashizip/malipo-sdks/issues</url>
+    </issueManagement>
+
     <properties>
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>

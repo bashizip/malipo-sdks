@@ -16,6 +16,12 @@ dependencies = [
     "requests>=2.25.0",
 ]
 
+[project.urls]
+Homepage = "https://docs.malipo.dev/sdk/python/"
+Documentation = "https://docs.malipo.dev/sdk/python/"
+Repository = "https://github.com/bashizip/malipo-sdks/tree/main/malipo-python"
+Issues = "https://github.com/bashizip/malipo-sdks/issues"
+
 [project.optional-dependencies]
 test = [
     "pytest>=7.0.0",

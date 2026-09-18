@@ -9,6 +9,12 @@
             "email": "dev@malipo.com"
         }
     ],
+    "homepage": "https://docs.malipo.dev/sdk/php/",
+    "support": {
+        "issues": "https://github.com/bashizip/malipo-sdks/issues",
+        "source": "https://github.com/bashizip/malipo-sdks/tree/main/malipo-php",
+        "docs": "https://docs.malipo.dev/sdk/php/"
+    },
     "require": {
         "php": ">=7.4",
         "guzzlehttp/guzzle": "^7.0"
