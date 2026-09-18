@@ -1,10 +1,9 @@
 ## 1.1.3
 
-*   **Docs**: Replaced the dead package links. `homepage`, `repository` and `issue_tracker` all
-    pointed at `github.com/malipo/malipo-flutter`, which returns 404, and the SDK source lives
-    in a private monorepo, so `repository` and `issue_tracker` are now omitted rather than
-    pointing somewhere unreachable. `homepage` links to the Flutter SDK guide at
-    https://docs.malipo.dev/sdk/flutter/.
+*   **Docs**: Replaced the dead package links - `homepage`, `repository` and `issue_tracker` all
+    pointed at `github.com/malipo/malipo-flutter`, which returns 404. `homepage` now links to
+    the Flutter SDK guide at https://docs.malipo.dev/sdk/flutter/, and `repository` /
+    `issue_tracker` point at the source monorepo, https://github.com/bashizip/malipo-sdks.
 *   Updated `X-Client-Info` to `malipo-flutter/1.1.3`.
 
 ## 1.1.2
