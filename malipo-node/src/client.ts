@@ -44,7 +44,7 @@ export class Malipo {
     const defaultHeaders = {
       "Authorization": `Bearer ${this.apiKey}`,
       "Content-Type": "application/json",
-      "X-Client-Info": "malipo-node/1.2.4",
+      "X-Client-Info": "malipo-node/1.2.5",
       ...headers,
     };
 

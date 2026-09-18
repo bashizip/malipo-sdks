@@ -4,7 +4,7 @@ Follow these instructions to publish the updated versions of the Malipo SDKs to 
 
 ## 1. Node.js (`malipo-node`)
 **Platform:** [NPM](https://www.npmjs.com/)
-**Version:** 1.2.4
+**Version:** 1.2.5
 
 ```bash
 cd malipo-node
@@ -19,7 +19,7 @@ npm publish
 
 ## 2. Python (`malipo-python`)
 **Platform:** [PyPI](https://pypi.org/)
-**Version:** 1.0.2
+**Version:** 1.0.3
 
 ```bash
 cd malipo-python
@@ -35,16 +35,16 @@ python3 -m twine upload dist/*
 
 ## 3. PHP (`malipo-php`)
 **Platform:** [Packagist](https://packagist.org/)
-**Version:** 1.0.3
+**Version:** 1.0.4
 
 The PHP SDK uses a subtree split into a dedicated read-only repository (`bashizip/malipo-php`) for Packagist. Versioning is done by prefixing tags in the monorepo.
 ```bash
 # Tag the monorepo with the 'php-' prefix
-git tag php-v1.0.3
+git tag php-v1.0.4
 # Push the tag to GitHub
-git push origin php-v1.0.3
+git push origin php-v1.0.4
 ```
-A GitHub action will automatically sync the contents to the read-only repository and tag it as `v1.0.3`, which triggers Packagist.
+A GitHub action will automatically sync the contents to the read-only repository and tag it as `v1.0.4`, which triggers Packagist.
 
 ---
 
@@ -77,8 +77,8 @@ mvn clean deploy -P release
 ---
 
 ## Summary of Versions to Publish
-- **Node.js**: v1.2.4
-- **Python**: v1.0.2
-- **PHP**: v1.0.3
+- **Node.js**: v1.2.5
+- **Python**: v1.0.3
+- **PHP**: v1.0.4
 - **Flutter**: v1.1.3
 - **Java**: v1.0.1

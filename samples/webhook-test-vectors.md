@@ -3,8 +3,8 @@
 Verified reference values for the webhook `constructEvent` / `construct_event` helpers.
 Use these to check an integration without touching the live API: nothing here calls Malipo.
 
-All values below were reproduced with the SDKs in this repo (Node 1.2.4, Python 1.0.2,
-PHP 1.0.3, Flutter/Dart 1.1.3, Java 1.0.1).
+All values below were reproduced with the SDKs in this repo (Node 1.2.5, Python 1.0.3,
+PHP 1.0.4, Flutter/Dart 1.1.3, Java 1.0.1).
 
 ## How the signature is built
 
@@ -66,9 +66,9 @@ openssl dgst -sha256 -hmac 'whsec_example_only' body.json
 
 | SDK | Timestamped signature | Payload-only signature | Notes |
 | --- | --- | --- | --- |
-| Node 1.2.4 (CJS + ESM) | passes | passes | 4th arg `timestamp`, or `{ timestamp, toleranceMs: 0 }` for a frozen vector |
-| Python 1.0.2 | passes | passes | `timestamp=..., tolerance_ms=0` for a frozen vector |
-| PHP 1.0.3 | passes | passes | 4th arg `$timestamp`, 5th `$toleranceMs` (`0` for a frozen vector) |
+| Node 1.2.5 (CJS + ESM) | passes | passes | 4th arg `timestamp`, or `{ timestamp, toleranceMs: 0 }` for a frozen vector |
+| Python 1.0.3 | passes | passes | `timestamp=..., tolerance_ms=0` for a frozen vector |
+| PHP 1.0.4 | passes | passes | 4th arg `$timestamp`, 5th `$toleranceMs` (`0` for a frozen vector) |
 | Flutter/Dart 1.1.3 | passes | passes | 4th arg `timestamp`, 5th `toleranceMs` (`0` for a frozen vector) |
 | Java 1.0.1 | passes | passes | `constructEvent(body, sig, secret, timestamp, 0L)` for a frozen vector |
 

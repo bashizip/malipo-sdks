@@ -36,7 +36,7 @@ class Malipo
             'headers' => [
                 'Authorization' => 'Bearer ' . $this->apiKey,
                 'Content-Type' => 'application/json',
-                'X-Client-Info' => 'malipo-php/1.0.3',
+                'X-Client-Info' => 'malipo-php/1.0.4',
             ],
         ]);
 
