@@ -180,13 +180,77 @@ describe("Malipo SDK Client", () => {
   });
 
   describe("Webhooks", () => {
-    it("should verify a valid webhook signature", () => {
+    it("should verify a valid webhook signature with timestamp (recommended)", () => {
+      const payload = JSON.stringify({ id: "evt_123", type: "charge.succeeded" });
+      const secret = "whsec_test";
+      const timestamp = new Date().toISOString();
+      const signature = createHmac("sha256", secret).update(`${timestamp}.${payload}`).digest("hex");
+
+      const event = client.webhooks.constructEvent(payload, signature, secret, timestamp);
+      expect(event.id).toBe("evt_123");
+      expect(event.type).toBe("charge.succeeded");
+    });
+
+    it("should verify using options object with tolerance", () => {
+      const payload = JSON.stringify({ id: "evt_123", type: "charge.succeeded" });
+      const secret = "whsec_test";
+      const timestamp = new Date().toISOString();
+      const signature = createHmac("sha256", secret).update(`${timestamp}.${payload}`).digest("hex");
+
+      const event = client.webhooks.constructEvent(payload, signature, secret, {
+        timestamp,
+        toleranceMs: 60000,
+      });
+      expect(event.id).toBe("evt_123");
+      expect(event.type).toBe("charge.succeeded");
+    });
+
+    it("should throw when timestamp is outside tolerance window", () => {
+      const payload = JSON.stringify({ id: "evt_123", type: "charge.succeeded" });
+      const secret = "whsec_test";
+      // 10 minutes ago (default tolerance is 5 minutes)
+      const oldTimestamp = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+      const signature = createHmac("sha256", secret).update(`${oldTimestamp}.${payload}`).digest("hex");
+
+      expect(() => {
+        client.webhooks.constructEvent(payload, signature, secret, oldTimestamp);
+      }).toThrow("Webhook timestamp out of window.");
+    });
+
+    it("should verify a valid webhook signature without timestamp (legacy support)", () => {
       const payload = JSON.stringify({ id: "evt_123", type: "charge.succeeded" });
       const secret = "whsec_test";
       const signature = createHmac("sha256", secret).update(payload).digest("hex");
 
       const event = client.webhooks.constructEvent(payload, signature, secret);
       expect(event.id).toBe("evt_123");
+      expect(event.type).toBe("charge.succeeded");
+    });
+
+    it("should verify known test vector", () => {
+      const secret = "whsec_test_secret_key_12345";
+      const timestamp = "2026-09-18T07:30:00.000Z";
+      const payload = JSON.stringify({
+        id: "evt_test_1234567890abcdef",
+        type: "charge.succeeded",
+        data: {
+          object: {
+            id: "tx_12345",
+            amount: 50,
+            currency: "USD",
+            status: "succeeded",
+          },
+        },
+      });
+      const expectedSignature = "cd0f71bf0a336e45cef0116cd50ad580236abbad88ba26a340b31497088e89c3";
+
+      // Pass toleranceMs: 0 to disable timestamp freshness check for static test vector
+      const event = client.webhooks.constructEvent(payload, expectedSignature, secret, {
+        timestamp,
+        toleranceMs: 0,
+      });
+
+      expect(event.id).toBe("evt_test_1234567890abcdef");
       expect(event.type).toBe("charge.succeeded");
     });
 

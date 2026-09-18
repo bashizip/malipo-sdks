@@ -8,6 +8,8 @@ import type {
   MalipoErrorResponse,
   MalipoRefund,
   MalipoTransaction,
+  MalipoEvent,
+  WebhookConstructEventOptions,
   RefundCreateParams,
 } from "./types";
 import { MalipoError } from "./errors";
@@ -155,25 +157,59 @@ export class Malipo {
      * @param payload The raw request body (string)
      * @param signature The value of the X-Webhook-Signature header
      * @param secret Your webhook signing secret
+     * @param timestampOrOptions Optional value of the X-Webhook-Timestamp header, or options object
+     * @param toleranceMs Replay protection window in milliseconds (default: 300000ms / 5 minutes)
      */
-    constructEvent: (payload: string, signature: string, secret: string): any => {
+    constructEvent: (
+      payload: string,
+      signature: string,
+      secret: string,
+      timestampOrOptions?: string | WebhookConstructEventOptions,
+      toleranceMs: number = 300000
+    ): MalipoEvent => {
       // Import crypto dynamically to support environment-specific imports if needed,
       // but here we use the standard Node.js approach as this is a Node SDK.
-      const { createHmac } = require("node:crypto");
+      const { createHmac, timingSafeEqual } = require("node:crypto");
       
       if (!payload || !signature || !secret) {
         throw new Error("Missing payload, signature, or secret for webhook verification.");
       }
 
+      let timestamp: string | undefined;
+      let tolerance = toleranceMs;
+
+      if (typeof timestampOrOptions === "object" && timestampOrOptions !== null) {
+        timestamp = timestampOrOptions.timestamp;
+        if (typeof timestampOrOptions.toleranceMs === "number") {
+          tolerance = timestampOrOptions.toleranceMs;
+        }
+      } else if (typeof timestampOrOptions === "string") {
+        timestamp = timestampOrOptions;
+      }
+
+      if (timestamp && tolerance > 0) {
+        const timestampMs = Date.parse(timestamp);
+        if (!Number.isFinite(timestampMs) || Math.abs(Date.now() - timestampMs) > tolerance) {
+          throw new Error("Webhook timestamp out of window.");
+        }
+      }
+
+      const signedPayload = timestamp ? `${timestamp}.${payload}` : payload;
       const computedSignature = createHmac("sha256", secret)
-        .update(payload)
+        .update(signedPayload)
         .digest("hex");
 
-      if (computedSignature !== signature) {
+      const signatureBuf = Buffer.from(signature, "utf8");
+      const computedBuf = Buffer.from(computedSignature, "utf8");
+
+      if (
+        signatureBuf.length !== computedBuf.length ||
+        !timingSafeEqual(signatureBuf, computedBuf)
+      ) {
         throw new Error("Invalid webhook signature.");
       }
 
-      return JSON.parse(payload);
+      return JSON.parse(payload) as MalipoEvent;
     }
   };
 }

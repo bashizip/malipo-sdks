@@ -180,13 +180,15 @@ Malipo sends webhooks for asynchronous events. Use the SDK to verify the signatu
 // Express Example
 app.post('/webhooks/malipo', express.raw({ type: 'application/json' }), (req, res) => {
   const signature = req.header('x-webhook-signature');
+  const timestamp = req.header('x-webhook-timestamp');
   const secret = process.env.MALIPO_WEBHOOK_SECRET;
 
   try {
     const event = malipo.webhooks.constructEvent(
       req.body.toString(), 
       signature, 
-      secret
+      secret,
+      timestamp // Validates signature and replay window (5 mins)
     );
 
     switch (event.type) {

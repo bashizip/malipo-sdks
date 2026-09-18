@@ -357,6 +357,22 @@ export interface MalipoEvent {
 }
 
 /**
+ * Options for webhook signature verification.
+ */
+export interface WebhookConstructEventOptions {
+  /**
+   * The value of the X-Webhook-Timestamp header.
+   */
+  timestamp?: string;
+
+  /**
+   * Maximum allowed age of the webhook event in milliseconds (default: 300,000 ms / 5 minutes).
+   * Set to 0 to disable replay window check.
+   */
+  toleranceMs?: number;
+}
+
+/**
  * Standard API Error Response.
  */
 export interface MalipoErrorResponse {
