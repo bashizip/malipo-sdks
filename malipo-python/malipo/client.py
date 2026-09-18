@@ -1,6 +1,7 @@
 import json
 import hmac
 import hashlib
+from datetime import datetime, timezone
 import requests
 from typing import Optional, Any, Dict
 from .types import (
@@ -101,13 +102,52 @@ class BalanceResource:
         return self.client.request("GET", endpoint)
 
 class WebhooksResource:
-    def construct_event(self, payload: str, signature: str, secret: str) -> MalipoEvent:
+    """Verify inbound webhook signatures.
+
+    The signed message is ``f"{timestamp}.{payload}"``: the timestamp is prefixed to
+    the exact raw body with a literal dot, matching the Node SDK. When no timestamp
+    is supplied the legacy body-only scheme is used.
+    """
+
+    DEFAULT_TOLERANCE_MS = 300000
+
+    def construct_event(
+        self,
+        payload: str,
+        signature: str,
+        secret: str,
+        timestamp: Optional[str] = None,
+        tolerance_ms: int = DEFAULT_TOLERANCE_MS,
+    ) -> MalipoEvent:
+        """Verify a webhook signature and return the decoded event.
+
+        Args:
+            payload: The raw request body, exactly as received. Do not re-serialize it.
+            signature: The value of the ``X-Webhook-Signature`` header.
+            secret: Your webhook signing secret (64 hex characters, no prefix).
+            timestamp: The value of the ``X-Webhook-Timestamp`` header. Required for
+                deliveries signed with the timestamp scheme.
+            tolerance_ms: Replay-protection window in milliseconds (default 300000,
+                i.e. 5 minutes). Set to 0 to disable the check, for example when
+                verifying a frozen test vector.
+        """
         if not payload or not signature or not secret:
             raise ValueError("Missing payload, signature, or secret for webhook verification.")
             
+        if timestamp and tolerance_ms > 0:
+            signed_at = self._parse_timestamp(timestamp)
+            if signed_at is None:
+                raise MalipoError("Webhook timestamp out of window.")
+
+            skew_ms = abs((datetime.now(timezone.utc) - signed_at).total_seconds() * 1000)
+            if skew_ms > tolerance_ms:
+                raise MalipoError("Webhook timestamp out of window.")
+
+        signed_payload = f"{timestamp}.{payload}" if timestamp else payload
+
         expected_signature = hmac.new(
             secret.encode("utf-8"),
-            payload.encode("utf-8"),
+            signed_payload.encode("utf-8"),
             hashlib.sha256
         ).hexdigest()
         
@@ -115,3 +155,20 @@ class WebhooksResource:
             raise MalipoError("Invalid webhook signature.")
             
         return json.loads(payload)
+
+    @staticmethod
+    def _parse_timestamp(value: str) -> Optional[datetime]:
+        """Parse an ISO-8601 timestamp, returning None when it cannot be parsed."""
+        text = value.strip()
+        if text.endswith("Z") or text.endswith("z"):
+            text = text[:-1] + "+00:00"
+
+        try:
+            parsed = datetime.fromisoformat(text)
+        except ValueError:
+            return None
+
+        if parsed.tzinfo is None:
+            parsed = parsed.replace(tzinfo=timezone.utc)
+
+        return parsed
