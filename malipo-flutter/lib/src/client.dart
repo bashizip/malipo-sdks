@@ -48,7 +48,7 @@ class Malipo {
     final reqHeaders = {
       'Authorization': 'Bearer $apiKey',
       'Content-Type': 'application/json',
-      'X-Client-Info': 'malipo-flutter/1.1.2',
+      'X-Client-Info': 'malipo-flutter/1.1.3',
       ...?headers,
     };
 

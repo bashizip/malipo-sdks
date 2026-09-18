@@ -50,7 +50,7 @@ A GitHub action will automatically sync the contents to the read-only repository
 
 ## 4. Flutter/Dart (`malipo-flutter`)
 **Platform:** [Pub.dev](https://pub.dev/)
-**Version:** 1.1.2
+**Version:** 1.1.3
 
 ```bash
 cd malipo-flutter
@@ -80,5 +80,5 @@ mvn clean deploy -P release
 - **Node.js**: v1.2.4
 - **Python**: v1.0.2
 - **PHP**: v1.0.3
-- **Flutter**: v1.1.2
+- **Flutter**: v1.1.3
 - **Java**: v1.0.1
