@@ -1,3 +1,12 @@
+## 1.1.2
+
+*   **Fix**: `constructEvent` now verifies the signature over `${timestamp}.${rawBody}` and
+    rejects timestamps outside a 5-minute replay window, matching the Node.js SDK. Pass the
+    `X-Webhook-Timestamp` header as the 4th argument. Previously only the raw body was hashed,
+    so every live delivery failed verification.
+*   **Security**: Signature comparison is now constant-time and length-safe.
+*   Updated `X-Client-Info` to `malipo-flutter/1.1.2`.
+
 ## 1.1.1
 
 *   **Bug Fix**: Corrected base URL to include `/v1/` prefix for all API requests.

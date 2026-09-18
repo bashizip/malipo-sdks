@@ -40,7 +40,7 @@ class Malipo:
         default_headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",
-            "X-Client-Info": "malipo-python/1.0.1"
+            "X-Client-Info": "malipo-python/1.0.2"
         }
         if headers:
             default_headers.update(headers)
