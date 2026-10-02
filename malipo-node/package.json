@@ -25,6 +25,7 @@
     "build": "tsup src/index.ts --format cjs,esm --dts --clean",
     "dev": "tsup src/index.ts --format cjs,esm --watch --dts",
     "test": "vitest run",
+    "test:package": "node scripts/test-package.mjs",
     "test:watch": "vitest",
     "lint": "tsc --noEmit"
   },

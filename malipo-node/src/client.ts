@@ -1,3 +1,6 @@
+import type { B2CPage, B2CListParams, BeneficiaryCreateParams, MalipoBeneficiary,
+  DisbursementCreateParams, MalipoDisbursement, DisbursementStatus, SandboxPayoutScenario,
+  SandboxSanctionsStatus, SandboxClock } from "./types";
 import type {
   ChargeCreateParams,
   CheckoutSessionCreateParams,
@@ -35,7 +38,7 @@ export class Malipo {
   }
 
   private async request<T>(
-    method: "GET" | "POST",
+    method: "GET" | "POST" | "PATCH",
     endpoint: string,
     body?: any,
     headers?: Record<string, string>
@@ -79,6 +82,60 @@ export class Malipo {
 
     return data as T;
   }
+
+  private listQuery(params: object = {}): string {
+    const query = new URLSearchParams();
+    for (const [key, value] of Object.entries(params)) if (value !== undefined) query.set(key, String(value));
+    return query.size ? `?${query}` : "";
+  }
+
+  private testingRequest<T>(action: string, body: object = {}): Promise<T> {
+    if (this.environment !== "sandbox" || !this.apiKey.startsWith("sk_test_")) {
+      return Promise.reject(new MalipoError("Testing tools require a sandbox key", 403, "testing_live_forbidden"));
+    }
+    return this.request<T>("POST", `/testing/${action}`, body);
+  }
+
+  public readonly beneficiaries = {
+    create: (params: BeneficiaryCreateParams) => this.request<MalipoBeneficiary>("POST", "/beneficiaries", params),
+    list: (params: B2CListParams = {}) => this.request<B2CPage<MalipoBeneficiary>>("GET", `/beneficiaries${this.listQuery(params)}`),
+    retrieve: (id: string) => this.request<MalipoBeneficiary>("GET", `/beneficiaries/${encodeURIComponent(id)}`),
+    update: (id: string, params: Partial<Omit<BeneficiaryCreateParams, "reference">>) =>
+      this.request<MalipoBeneficiary>("PATCH", `/beneficiaries/${encodeURIComponent(id)}`, params),
+  };
+
+  public readonly disbursements = {
+    create: (params: DisbursementCreateParams, options: { idempotencyKey: string }): Promise<MalipoDisbursement> => {
+      const idempotencyKey = options?.idempotencyKey?.trim();
+      if (!idempotencyKey || idempotencyKey.length > 128) return Promise.reject(new MalipoError("Idempotency-Key is required (1–128 characters)", 400, "missing_idempotency_key"));
+      return this.request<MalipoDisbursement>("POST", "/disbursements", params, { "Idempotency-Key": idempotencyKey });
+    },
+    list: (params: B2CListParams & { reference?: string; status?: DisbursementStatus } = {}) =>
+      this.request<B2CPage<MalipoDisbursement>>("GET", `/disbursements${this.listQuery(params)}`),
+    retrieve: (id: string) => this.request<MalipoDisbursement>("GET", `/disbursements/${encodeURIComponent(id)}`),
+    cancel: (id: string) => this.request<MalipoDisbursement>("POST", `/disbursements/${encodeURIComponent(id)}/cancel`, {}),
+  };
+
+  public readonly testing = {
+    holdBeneficiary: (id: string, held: boolean) => this.testingRequest<MalipoBeneficiary>("hold_beneficiary", { id, held }),
+    reviewBeneficiary: (id: string, versionId: string, review: { identity_status: "pending" | "approved" | "rejected"; residence_status: "pending" | "approved" | "rejected"; proof: string }) =>
+      this.testingRequest<MalipoBeneficiary>("review_beneficiary", { id, version_id: versionId, ...review }),
+    approveBeneficiary: (id: string) => this.testingRequest<MalipoBeneficiary>("approve", { id }),
+    rejectBeneficiary: (id: string) => this.testingRequest<MalipoBeneficiary>("reject", { id }),
+    screenBeneficiary: (id: string, status: SandboxSanctionsStatus) => this.testingRequest<MalipoBeneficiary>("screen_beneficiary", { id, status }),
+    screenMerchant: (status: SandboxSanctionsStatus) => this.testingRequest<SandboxClock>("screen_merchant", { status }),
+    advanceTime: (seconds: number) => this.testingRequest<SandboxClock>("advance_time", { seconds }),
+    holdMerchant: (held: boolean) => this.testingRequest<SandboxClock>("hold", { held }),
+    holdDisbursement: (id: string, held: boolean) => this.testingRequest<MalipoDisbursement>("hold_disbursement", { id, held }),
+    setLimits: (limits: { minimum_minor: number; maximum_minor: number; daily_minor: number; monthly_minor: number }) => this.testingRequest<SandboxClock>("limits", limits),
+    release: () => this.testingRequest<SandboxClock>("release"),
+    scenario: (id: string, scenario: SandboxPayoutScenario) => this.testingRequest<MalipoDisbursement>("scenario", { id, scenario }),
+    result: (id: string, status: "succeeded" | "failed" | "needs_review") => this.testingRequest<MalipoDisbursement>("result", { id, status }),
+    resolve: (id: string, status: "succeeded" | "failed", proof: string) => this.testingRequest<MalipoDisbursement>("resolve", { id, status, proof }),
+    setDefaultScenario: (scenario: SandboxPayoutScenario) => this.testingRequest<SandboxClock>("set_scenario", { scenario }),
+    replayWebhook: (id: string, eventType: `payout.${DisbursementStatus}`, delaySeconds = 0) => this.testingRequest<{ scheduled: boolean }>("webhook", { id, event_type: eventType, delay_seconds: delaySeconds }),
+    run: () => this.testingRequest<{ processed: number }>("run"),
+  };
 
   /**
    * Charge Management

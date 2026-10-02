@@ -349,7 +349,7 @@ export interface MalipoEvent {
   /** The data payload associated with the event */
   data: {
     /** The actual resource that was updated */
-    object: MalipoTransaction | MalipoRefund;
+    object: MalipoTransaction | MalipoRefund | MalipoDisbursement;
   };
   
   /** ISO 8601 event timestamp */
@@ -387,3 +387,31 @@ export interface MalipoErrorResponse {
     [key: string]: any;
   };
 }
+
+export interface B2CPage<T> {
+  data: T[];
+  pagination: { page: number; page_size: number; total: number };
+}
+export interface B2CListParams { page?: number; page_size?: number; }
+export interface BeneficiaryCreateParams {
+  reference: string; name: string; network: "ORANGE_MONEY" | "VODACOM_MPESA"; msisdn: string;
+}
+export interface MalipoBeneficiary {
+  held: boolean;
+  id: string; object: "beneficiary"; environment: MalipoEnvironment; reference: string;
+  active_version_id: string | null;
+  versions: Array<{ id: string; version: number; name: string; network: string; masked_msisdn: string;
+    status: "pending_review" | "approved" | "rejected"; effective_from: string | null;
+    identity_status: "pending" | "approved" | "rejected"; residence_status: "pending" | "approved" | "rejected" }>;
+}
+export type DisbursementStatus = "pending" | "processing" | "succeeded" | "failed" | "cancelled" | "needs_review";
+export interface DisbursementCreateParams { beneficiary_id: string; amount: string; currency: "USD"; reference: string; }
+export interface MalipoDisbursement {
+  id: string; object: "disbursement"; payout_kind: "b2c"; environment: MalipoEnvironment;
+  beneficiary_id: string; beneficiary_version_id: string; reference: string; amount: string; currency: "USD";
+  status: DisbursementStatus; destination: { network: string; masked_msisdn: string };
+  created_at: string; finalized_at: string | null; next_action: string | null; idempotent_replay?: boolean;
+}
+export type SandboxPayoutScenario = "success" | "rejected" | "accepted" | "timeout";
+export type SandboxSanctionsStatus = "cleared" | "blocked" | "unavailable";
+export interface SandboxClock { now: string; }

@@ -17,6 +17,7 @@ The official Node.js library for the [Malipo Payment Gateway](https://malipo.dev
 - [Hosted Checkout](#hosted-checkout)
 - [Transaction Status](#transaction-status)
 - [Balances](#balances)
+- [B2C sandbox preview](#b2c-sandbox-preview)
 - [Webhooks](#webhooks)
 - [Error Handling](#error-handling)
 - [TypeScript Support](#typescript-support)
@@ -252,3 +253,35 @@ const result: MalipoTransaction = await malipo.charges.create(params);
 ## License
 
 MIT © [Malipo Team](https://malipo.dev)
+
+
+## B2C sandbox preview
+
+These additions are local release candidates, not yet published to npm. They require the compatible B2C server deployment and an explicit write grant on the sandbox key. User wallets remain the responsibility of your backend; Malipo reserves the merchant's available USD balance.
+
+```js
+const beneficiary = await malipo.beneficiaries.create({
+  reference: 'customer-123', name: 'Sandbox recipient',
+  network: 'ORANGE_MONEY', msisdn: '243840000001',
+});
+await malipo.testing.approveBeneficiary(beneficiary.id);
+const payout = await malipo.disbursements.create({
+  beneficiary_id: beneficiary.id, amount: '20.00', currency: 'USD',
+  reference: 'withdrawal-123',
+}, { idempotencyKey: 'withdrawal-123' });
+```
+
+Persist the reference, idempotency key and complete input in your application before submitting. Both sandbox and live disbursement creation require the key. After a lost response, retrieve by reference or replay exactly the same request and key. Never generate a new withdrawal reference just because the HTTP response was lost. Divergent replays return `409`.
+
+```js
+const page = await malipo.disbursements.list({ reference: 'withdrawal-123' });
+const recovered = page.data[0];
+```
+
+`beneficiaries.update(id, changes)` creates a version requiring approval; changes activate 24 UTC hours after approval. Owner identity/residence verification is recorded per version in live, and each version exposes both verification statuses. Numbers are masked in responses. `disbursements.cancel(id)` succeeds only before worker pickup.
+
+`testing.*` is rejected for live keys. Sandbox helpers include `release`, `setDefaultScenario`, `run`, `advanceTime`, `screenMerchant`, `screenBeneficiary`, `reviewBeneficiary`, `holdBeneficiary`, `holdMerchant`, `holdDisbursement`, `result`, `resolve` and `replayWebhook`. Configure scenarios before creating a payout. A timeout retains reserved funds until a certain result or a resolution supported by proof.
+
+Run the [funding and late-confirmation example](../samples/node/b2c.mjs) from the repository after building the SDK. Set `MALIPO_B2C_API_KEY` to a dedicated sandbox key; the example defaults to the staging API domain. A compatible server is required. `npm run test:package` instead checks the packed SDK in a disposable offline project against a local HTTP fixture; it does not validate the public API.
+
+B2C webhooks use `payout.*`, `data.object.payout_kind === 'b2c'`, environment, test key ID and client reference. Verify the raw payload and required timestamp with `webhooks.constructEvent`, and atomically deduplicate `event.id` with your own wallet bookkeeping. Events may arrive repeatedly or out of order; reconcile using `disbursements.retrieve(id)` and do not regress a terminal wallet operation when an older event arrives.
