@@ -257,7 +257,7 @@ MIT © [Malipo Team](https://malipo.dev)
 
 ## B2C sandbox preview
 
-These additions are local release candidates, not yet published to npm. They require the compatible B2C server deployment and an explicit write grant on the sandbox key. User wallets remain the responsibility of your backend; Malipo reserves the merchant's available USD balance.
+Version `1.3.0-beta.1` is the B2C sandbox release candidate; npm publication is pending. They require the compatible B2C server deployment and an explicit write grant on the sandbox key. User wallets remain the responsibility of your backend; Malipo reserves the merchant's available USD balance.
 
 ```js
 const beneficiary = await malipo.beneficiaries.create({
