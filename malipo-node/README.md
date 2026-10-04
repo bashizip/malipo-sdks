@@ -285,3 +285,20 @@ const recovered = page.data[0];
 Run the [funding and late-confirmation example](../samples/node/b2c.mjs) from the repository after building the SDK. Set `MALIPO_B2C_API_KEY` to a dedicated sandbox key; the example defaults to the staging API domain. A compatible server is required. `npm run test:package` instead checks the packed SDK in a disposable offline project against a local HTTP fixture; it does not validate the public API.
 
 B2C webhooks use `payout.*`, `data.object.payout_kind === 'b2c'`, environment, test key ID and client reference. Verify the raw payload and required timestamp with `webhooks.constructEvent`, and atomically deduplicate `event.id` with your own wallet bookkeeping. Events may arrive repeatedly or out of order; reconcile using `disbursements.retrieve(id)` and do not regress a terminal wallet operation when an older event arrives.
+
+### Public staging acceptance / Recette publique staging
+
+Use an **exclusive synthetic sandbox key** with B2C writes enabled and no pending funds. Do not use a key with concurrent activity. The command creates a USD 30 simulated charge, releases funds, creates a beneficiary and a USD 20 simulated disbursement, checks replay/conflict and timeout/late confirmation, then restores the default success scenario. It leaves these test records for reconciliation. Customer wallets remain managed by the merchant.
+
+```sh
+# Set MALIPO_B2C_API_KEY through your local secret environment; never commit it.
+# MALIPO_B2C_BASE_URL must be exactly https://api-staging.malipo.dev/v1 if set.
+# Optional: MALIPO_B2C_RECEIPT_PATH chooses a new receipt filename.
+npm run test:b2c:staging
+```
+
+The runner builds, packs and installs the actual candidate tarball in a temporary offline project. It accepts only the exact staging origin and a sandbox key, refuses HTTP redirects, bounds requests and writes a receipt containing SDK version/integrity, assertions and USD balances in minor units. It omits keys, names and phone numbers. Existing receipts are never overwritten. A failed run can leave sandbox records or an uncertain operation: inspect the dedicated key before retrying; do not treat a failed run as evidence of acceptance.
+
+FR : cette commande effectue uniquement une recette sandbox. Une clé dédiée est requise ; les données de test sont conservées. Le reçu ne valide ni la réception des webhooks, ni l’isolation entre deux clés, ni un paiement opérateur réel. Ces contrôles restent des étapes de recette distinctes.
+
+`npm run test:acceptance` validates the runner locally against an SDK HTTP fixture, including servers that double-debit or release uncertain funds. It does not contact staging. `npm run test:package` checks tarball installation and ESM/CJS compatibility independently.

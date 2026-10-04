@@ -1,0 +1,26 @@
+name: Node SDK candidate
+on:
+  push:
+    paths: ['malipo-node/**', '.github/workflows/node-sdk.yml']
+  pull_request:
+    paths: ['malipo-node/**', '.github/workflows/node-sdk.yml']
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: malipo-node
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: malipo-node/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+      - run: npm run test:package
+      - run: npm run test:acceptance

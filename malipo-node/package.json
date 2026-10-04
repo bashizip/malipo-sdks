@@ -26,6 +26,8 @@
     "dev": "tsup src/index.ts --format cjs,esm --watch --dts",
     "test": "vitest run",
     "test:package": "node scripts/test-package.mjs",
+    "test:acceptance": "npm run build && node --test scripts/b2c-acceptance.check.mjs",
+    "test:b2c:staging": "node scripts/test-b2c-staging.mjs",
     "test:watch": "vitest",
     "lint": "tsc --noEmit"
   },
