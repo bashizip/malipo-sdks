@@ -302,3 +302,11 @@ The runner builds, packs and installs the actual candidate tarball in a temporar
 FR : cette commande effectue uniquement une recette sandbox. Une clé dédiée est requise ; les données de test sont conservées. Le reçu ne valide ni la réception des webhooks, ni l’isolation entre deux clés, ni un paiement opérateur réel. Ces contrôles restent des étapes de recette distinctes.
 
 `npm run test:acceptance` validates the runner locally against an SDK HTTP fixture, including servers that double-debit or release uncertain funds. It does not contact staging. `npm run test:package` checks tarball installation and ESM/CJS compatibility independently.
+
+### Received-webhook acceptance
+
+`npm run test:webhooks` checks the acceptance receiver with Node.js 24 and the built SDK. The receiver requires both signature headers, verifies the original bytes with `webhooks.constructEvent`, rejects live/other-key events, reconciles each new event with the API and records event IDs plus one terminal bookkeeping effect in a local SQLite transaction. It retains deduplication across restarts. The SQLite file belongs to the test merchant consumer; Malipo does not create customer wallets.
+
+The reusable test harness is `scripts/b2c-webhook-receiver.mjs`. For integrated acceptance, expose only its `/webhook` POST over a controlled HTTPS test tunnel, register a temporary endpoint for the dedicated sandbox merchant, replay `payout.*` using `testing.replayWebhook`, then disable the endpoint and stop the tunnel. `/health` exposes no receipts; the SQLite file and signing secret must remain outside Git. Verify actual delivery logs against received IDs, and confirm that old events and duplicates do not change the merchant balance or apply another consumer effect. An endpoint replay retains the original event ID while using a fresh signing timestamp.
+
+FR : le récepteur est un outil de recette Node.js 24. Il vérifie le corps brut et l’horodatage, conserve la déduplication sur disque et consulte le statut canonique avant toute comptabilisation de test. Ce stockage appartient au consommateur marchand. Après recette, désactiver l’endpoint temporaire et arrêter le tunnel ; ne publier ni le secret ni la base SQLite.

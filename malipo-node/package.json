@@ -27,6 +27,7 @@
     "test": "vitest run",
     "test:package": "node scripts/test-package.mjs",
     "test:acceptance": "npm run build && node --test scripts/b2c-acceptance.check.mjs",
+    "test:webhooks": "npm run build && node --test scripts/b2c-webhook-receiver.check.mjs",
     "test:b2c:staging": "node scripts/test-b2c-staging.mjs",
     "test:watch": "vitest",
     "lint": "tsc --noEmit"

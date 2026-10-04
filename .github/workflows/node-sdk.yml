@@ -24,3 +24,4 @@ jobs:
       - run: npm test
       - run: npm run test:package
       - run: npm run test:acceptance
+      - run: npm run test:webhooks
