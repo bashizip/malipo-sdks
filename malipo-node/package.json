@@ -1,6 +1,6 @@
 {
   "name": "malipo-node",
-  "version": "1.2.5",
+  "version": "1.3.0-beta.1",
   "description": "Official Node.js SDK for Malipo Payment Gateway",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -25,6 +25,10 @@
     "build": "tsup src/index.ts --format cjs,esm --dts --clean",
     "dev": "tsup src/index.ts --format cjs,esm --watch --dts",
     "test": "vitest run",
+    "test:package": "node scripts/test-package.mjs",
+    "test:acceptance": "npm run build && node --test scripts/b2c-acceptance.check.mjs",
+    "test:webhooks": "npm run build && node --test scripts/b2c-webhook-receiver.check.mjs",
+    "test:b2c:staging": "node scripts/test-b2c-staging.mjs",
     "test:watch": "vitest",
     "lint": "tsc --noEmit"
   },

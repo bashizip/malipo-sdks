@@ -17,6 +17,7 @@ The official Node.js library for the [Malipo Payment Gateway](https://malipo.dev
 - [Hosted Checkout](#hosted-checkout)
 - [Transaction Status](#transaction-status)
 - [Balances](#balances)
+- [B2C sandbox preview](#b2c-sandbox-preview)
 - [Webhooks](#webhooks)
 - [Error Handling](#error-handling)
 - [TypeScript Support](#typescript-support)
@@ -252,3 +253,62 @@ const result: MalipoTransaction = await malipo.charges.create(params);
 ## License
 
 MIT © [Malipo Team](https://malipo.dev)
+
+
+## B2C sandbox preview
+
+Version `1.3.0-beta.1` is the B2C sandbox release candidate; npm publication is pending. They require the compatible B2C server deployment and an explicit write grant on the sandbox key. User wallets remain the responsibility of your backend; Malipo reserves the merchant's available USD balance.
+
+```js
+const beneficiary = await malipo.beneficiaries.create({
+  reference: 'customer-123', name: 'Sandbox recipient',
+  network: 'ORANGE_MONEY', msisdn: '243840000001',
+});
+await malipo.testing.approveBeneficiary(beneficiary.id);
+const payout = await malipo.disbursements.create({
+  beneficiary_id: beneficiary.id, amount: '20.00', currency: 'USD',
+  reference: 'withdrawal-123',
+}, { idempotencyKey: 'withdrawal-123' });
+```
+
+Persist the reference, idempotency key and complete input in your application before submitting. Both sandbox and live disbursement creation require the key. After a lost response, retrieve by reference or replay exactly the same request and key. Never generate a new withdrawal reference just because the HTTP response was lost. Divergent replays return `409`.
+
+```js
+const page = await malipo.disbursements.list({ reference: 'withdrawal-123' });
+const recovered = page.data[0];
+```
+
+`beneficiaries.update(id, changes)` creates a version requiring approval; changes activate 24 UTC hours after approval. Owner identity/residence verification is recorded per version in live, and each version exposes both verification statuses. Numbers are masked in responses. `disbursements.cancel(id)` succeeds only before worker pickup.
+
+`testing.*` is rejected for live keys. Sandbox helpers include `release`, `setDefaultScenario`, `run`, `advanceTime`, `screenMerchant`, `screenBeneficiary`, `reviewBeneficiary`, `holdBeneficiary`, `holdMerchant`, `holdDisbursement`, `result`, `resolve` and `replayWebhook`. Configure scenarios before creating a payout. A timeout retains reserved funds until a certain result or a resolution supported by proof.
+
+Run the [funding and late-confirmation example](../samples/node/b2c.mjs) from the repository after building the SDK. Set `MALIPO_B2C_API_KEY` to a dedicated sandbox key; the example defaults to the staging API domain. A compatible server is required. `npm run test:package` instead checks the packed SDK in a disposable offline project against a local HTTP fixture; it does not validate the public API.
+
+B2C webhooks use `payout.*`, `data.object.payout_kind === 'b2c'`, environment, test key ID and client reference. Verify the raw payload and required timestamp with `webhooks.constructEvent`, and atomically deduplicate `event.id` with your own wallet bookkeeping. Events may arrive repeatedly or out of order; reconcile using `disbursements.retrieve(id)` and do not regress a terminal wallet operation when an older event arrives.
+
+### Public staging acceptance / Recette publique staging
+
+Use an **exclusive synthetic sandbox key** with B2C writes enabled and no pending funds. Do not use a key with concurrent activity. The command creates a USD 30 simulated charge, releases funds, creates a beneficiary and a USD 20 simulated disbursement, checks replay/conflict and timeout/late confirmation, then restores the default success scenario. It leaves these test records for reconciliation. Customer wallets remain managed by the merchant.
+
+```sh
+# Set MALIPO_B2C_API_KEY through your local secret environment; never commit it.
+# MALIPO_B2C_BASE_URL must be exactly https://api-staging.malipo.dev/v1 if set.
+# Optional: MALIPO_B2C_RECEIPT_PATH chooses a new receipt filename.
+npm run test:b2c:staging
+```
+
+The runner builds, packs and installs the actual candidate tarball in a temporary offline project. It accepts only the exact staging origin and a sandbox key, refuses HTTP redirects, bounds requests and writes a receipt containing SDK version/integrity, assertions and USD balances in minor units. It omits keys, names and phone numbers. Existing receipts are never overwritten. A failed run can leave sandbox records or an uncertain operation: inspect the dedicated key before retrying; do not treat a failed run as evidence of acceptance.
+
+FR : cette commande effectue uniquement une recette sandbox. Une clé dédiée est requise ; les données de test sont conservées. Le reçu ne valide ni la réception des webhooks, ni l’isolation entre deux clés, ni un paiement opérateur réel. Ces contrôles restent des étapes de recette distinctes.
+
+`npm run test:acceptance` validates the runner locally against an SDK HTTP fixture, including servers that double-debit or release uncertain funds. It does not contact staging. `npm run test:package` checks tarball installation and ESM/CJS compatibility independently.
+
+### Received-webhook acceptance
+
+`npm run test:webhooks` checks the acceptance receiver with Node.js 24 and the built SDK. The receiver requires both signature headers, verifies the original bytes with `webhooks.constructEvent`, rejects live/other-key events, reconciles each new event with the API and records event IDs plus one terminal bookkeeping effect in a local SQLite transaction. It retains deduplication across restarts. The SQLite file belongs to the test merchant consumer; Malipo does not create customer wallets.
+
+The reusable test harness is `scripts/b2c-webhook-receiver.mjs`. For integrated acceptance, expose only its `/webhook` POST over a controlled HTTPS test tunnel, register a temporary endpoint for the dedicated sandbox merchant, replay `payout.*` using `testing.replayWebhook`, then disable the endpoint and stop the tunnel. `/health` exposes no receipts; the SQLite file and signing secret must remain outside Git. Verify actual delivery logs against received IDs, and confirm that old events and duplicates do not change the merchant balance or apply another consumer effect. An endpoint replay retains the original event ID while using a fresh signing timestamp.
+
+FR : le récepteur est un outil de recette Node.js 24. Il vérifie le corps brut et l’horodatage, conserve la déduplication sur disque et consulte le statut canonique avant toute comptabilisation de test. Ce stockage appartient au consommateur marchand. Après recette, désactiver l’endpoint temporaire et arrêter le tunnel ; ne publier ni le secret ni la base SQLite.
+
+To accept the exact release tarball without rebuilding it, set `MALIPO_B2C_SDK_TARBALL` to its absolute path when running `test:b2c:staging`. The runner verifies the package name/version and records its SHA-512 integrity before sandbox requests. Do not run builds concurrently against the same SDK directory.
