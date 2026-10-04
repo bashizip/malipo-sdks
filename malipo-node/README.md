@@ -257,7 +257,7 @@ MIT © [Malipo Team](https://malipo.dev)
 
 ## B2C sandbox preview
 
-Version `1.3.0-beta.1` is the B2C sandbox release candidate; npm publication is pending. They require the compatible B2C server deployment and an explicit write grant on the sandbox key. User wallets remain the responsibility of your backend; Malipo reserves the merchant's available USD balance.
+Version `1.3.0-beta.1` is published on npm under the `beta` tag. Install it with `npm install malipo-node@1.3.0-beta.1`. Live B2C remains disabled. These resources require the compatible B2C server deployment and an explicit write grant on the sandbox key. User wallets remain the responsibility of your backend; Malipo reserves the merchant's available USD balance.
 
 ```js
 const beneficiary = await malipo.beneficiaries.create({

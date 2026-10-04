@@ -3,17 +3,20 @@
 Follow these instructions to publish the updated versions of the Malipo SDKs to their respective package managers.
 
 ## 1. Node.js (`malipo-node`)
-**Platform:** [NPM](https://www.npmjs.com/)
-**Version:** 1.2.5
+**Platform:** [NPM](https://www.npmjs.com/package/malipo-node)
+**Published:** `1.3.0-beta.1` under `beta`; stable `latest` remains `1.2.5`.
+
+The immutable beta tarball passed public sandbox and signed-webhook acceptance.
+Its registry integrity and fresh ESM/CJS installation are recorded in the MMS
+receipt `docs/evidence/b2c-npm-publication-20261004.json`. Do not republish or
+rebuild this version; corrections require a new version.
 
 ```bash
-cd malipo-node
-# Ensure dependencies are installed and build is successful
-npm install
-npm run build
-# Publish to NPM
-npm publish
+npm install malipo-node@1.3.0-beta.1
 ```
+
+The beta requires the compatible B2C API and an explicitly authorized sandbox
+server key. Merchant backends own customer wallets; real B2C payouts remain disabled.
 
 ---
 
@@ -77,7 +80,7 @@ mvn clean deploy -P release
 ---
 
 ## Summary of Versions to Publish
-- **Node.js**: v1.2.5
+- **Node.js**: beta v1.3.0-beta.1 published; stable v1.2.5
 - **Python**: v1.0.3
 - **PHP**: v1.0.4
 - **Flutter**: v1.1.3
