@@ -17,7 +17,7 @@ The official Node.js library for the [Malipo Payment Gateway](https://malipo.dev
 - [Hosted Checkout](#hosted-checkout)
 - [Transaction Status](#transaction-status)
 - [Balances](#balances)
-- [B2C sandbox preview](#b2c-sandbox-preview)
+- [B2C disbursements](#b2c-disbursements)
 - [Webhooks](#webhooks)
 - [Error Handling](#error-handling)
 - [TypeScript Support](#typescript-support)
@@ -40,7 +40,7 @@ Initialize the client with your secret API key. You can find your keys in the [M
 import { Malipo } from 'malipo-node';
 
 const malipo = new Malipo({
-  apiKey: 'sk_test_51Mz...' // Use your secret key
+  apiKey: process.env.MALIPO_API_KEY // Your standard Malipo server API key
 });
 ```
 
@@ -50,7 +50,7 @@ const malipo = new Malipo({
 | :--- | :--- | :--- |
 | `apiKey` | `string` | **Required.** Your Malipo secret key (`sk_test_...` or `sk_live_...`). |
 | `environment` | `string` | `sandbox` or `live`. Auto-detected from the API key prefix by default. |
-| `baseUrl` | `string` | Optional. Override the API base URL (default: `https://api.malipo.dev`). |
+| `baseUrl` | `string` | Optional. Override the API base URL (default: `https://api.malipo.dev/v1`). |
 
 ---
 
@@ -255,9 +255,9 @@ const result: MalipoTransaction = await malipo.charges.create(params);
 MIT © [Malipo Team](https://malipo.dev)
 
 
-## B2C sandbox preview
+## B2C disbursements
 
-Version `1.3.0-beta.1` is published on npm under the `beta` tag. Install it with `npm install malipo-node@1.3.0-beta.1`. Live B2C remains disabled. These resources require the compatible B2C server deployment and an explicit write grant on the sandbox key. User wallets remain the responsibility of your backend; Malipo reserves the merchant's available USD balance.
+Version `1.3.0-beta.1` is published on npm. Install it with `npm install malipo-node@1.3.0-beta.1`. The production API is `https://api.malipo.dev/v1` (the SDK default). B2C is available in sandbox; live B2C remains disabled. Use your standard merchant API key through `MALIPO_API_KEY`, with the B2C write permission enabled and the `sk_test_` prefix for sandbox. The same key authenticates payments, balances, beneficiaries and disbursements. User wallets remain the responsibility of your backend; Malipo reserves the merchant's available USD balance.
 
 ```js
 const beneficiary = await malipo.beneficiaries.create({
@@ -282,7 +282,7 @@ const recovered = page.data[0];
 
 `testing.*` is rejected for live keys. Sandbox helpers include `release`, `setDefaultScenario`, `run`, `advanceTime`, `screenMerchant`, `screenBeneficiary`, `reviewBeneficiary`, `holdBeneficiary`, `holdMerchant`, `holdDisbursement`, `result`, `resolve` and `replayWebhook`. Configure scenarios before creating a payout. A timeout retains reserved funds until a certain result or a resolution supported by proof.
 
-Run the [funding and late-confirmation example](../samples/node/b2c.mjs) from the repository after building the SDK. Set `MALIPO_B2C_API_KEY` to a dedicated sandbox key; the example defaults to the staging API domain. A compatible server is required. `npm run test:package` instead checks the packed SDK in a disposable offline project against a local HTTP fixture; it does not validate the public API.
+Run the [funding and late-confirmation example](../samples/node/b2c.mjs) from the repository after building the SDK. Set `MALIPO_API_KEY` to your sandbox API key with B2C writes enabled; the example uses the production API domain by default. An optional `MALIPO_API_BASE_URL` overrides the API endpoint. `npm run test:package` instead checks the packed SDK in a disposable offline project against a local HTTP fixture; it does not validate the public API.
 
 B2C webhooks use `payout.*`, `data.object.payout_kind === 'b2c'`, environment, test key ID and client reference. Verify the raw payload and required timestamp with `webhooks.constructEvent`, and atomically deduplicate `event.id` with your own wallet bookkeeping. Events may arrive repeatedly or out of order; reconcile using `disbursements.retrieve(id)` and do not regress a terminal wallet operation when an older event arrives.
 
@@ -291,7 +291,7 @@ B2C webhooks use `payout.*`, `data.object.payout_kind === 'b2c'`, environment, t
 Use an **exclusive synthetic sandbox key** with B2C writes enabled and no pending funds. Do not use a key with concurrent activity. The command creates a USD 30 simulated charge, releases funds, creates a beneficiary and a USD 20 simulated disbursement, checks replay/conflict and timeout/late confirmation, then restores the default success scenario. It leaves these test records for reconciliation. Customer wallets remain managed by the merchant.
 
 ```sh
-# Set MALIPO_B2C_API_KEY through your local secret environment; never commit it.
+# Set MALIPO_API_KEY through your local secret environment; never commit it.
 # MALIPO_B2C_BASE_URL must be exactly https://api-staging.malipo.dev/v1 if set.
 # Optional: MALIPO_B2C_RECEIPT_PATH chooses a new receipt filename.
 npm run test:b2c:staging

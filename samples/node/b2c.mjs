@@ -5,9 +5,9 @@ import Malipo from '../../malipo-node/dist/index.js';
 import { randomUUID } from 'node:crypto';
 import { setTimeout as delay } from 'node:timers/promises';
 
-const apiKey = process.env.MALIPO_B2C_API_KEY;
-if (!apiKey?.startsWith('sk_test_')) throw new Error('A sandbox MALIPO_B2C_API_KEY is required');
-const client = new Malipo({ apiKey, baseUrl: process.env.MALIPO_B2C_BASE_URL ?? 'https://api-staging.malipo.dev/v1' });
+const apiKey = process.env.MALIPO_API_KEY ?? process.env.MALIPO_B2C_API_KEY;
+if (!apiKey?.startsWith('sk_test_')) throw new Error('A sandbox MALIPO_API_KEY is required');
+const client = new Malipo({ apiKey, baseUrl: process.env.MALIPO_API_BASE_URL ?? process.env.MALIPO_B2C_BASE_URL });
 const run = randomUUID();
 // Existing force-success sandbox phone. It is never sent to an operator.
 let charge = await client.charges.create({ amount: 30, currency: 'USD', phone: '+243000000001', network: 'ORANGE_MONEY' }, { idempotencyKey: `b2c-funding-${run}` });
