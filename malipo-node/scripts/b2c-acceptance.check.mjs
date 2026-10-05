@@ -11,6 +11,11 @@ test('only the exact staging origin and sandbox keys are admitted', () => {
   }
   for (const key of [undefined, 'sk_live_synthetic', 'sk_test_bad\nvalue']) assert.throws(() => stagingConfig({ MALIPO_B2C_API_KEY: key }), /sandbox_key_required/);
 });
+test('the standard merchant key takes precedence over the legacy test variable', () => {
+  assert.deepEqual(stagingConfig({ MALIPO_API_KEY: config.apiKey }), config);
+  assert.deepEqual(stagingConfig({ MALIPO_API_KEY: config.apiKey, MALIPO_B2C_API_KEY: 'sk_live_legacy' }), config);
+  assert.throws(() => stagingConfig({ MALIPO_API_KEY: 'sk_live_standard', MALIPO_B2C_API_KEY: config.apiKey }), /sandbox_key_required/);
+});
 test('HTTP requests refuse redirects, off-origin paths and bound their duration', async () => {
   const calls = [];
   const fetch = guardedFetch(config.baseUrl, async (...args) => { calls.push(args); return new Response('{}'); });
@@ -88,7 +93,7 @@ test('the CLI refuses an existing receipt before building or mutating staging', 
   try {
     await writeFile(path, 'existing evidence');
     await assert.rejects(promisify(execFile)(process.execPath, [new URL('./test-b2c-staging.mjs', import.meta.url).pathname], {
-      env: { ...process.env, MALIPO_B2C_API_KEY: config.apiKey, MALIPO_B2C_BASE_URL: config.baseUrl, MALIPO_B2C_RECEIPT_PATH: path },
+      env: { ...process.env, MALIPO_API_KEY: config.apiKey, MALIPO_B2C_BASE_URL: config.baseUrl, MALIPO_B2C_RECEIPT_PATH: path },
     }), error => error.code === 1 && error.stderr.includes('No acceptance receipt was issued') && !error.stderr.includes(config.apiKey));
     assert.equal(await readFile(path, 'utf8'), 'existing evidence');
   } finally { await rm(dir, { recursive: true, force: true }); }

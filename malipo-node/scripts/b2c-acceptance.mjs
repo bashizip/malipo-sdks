@@ -3,7 +3,7 @@ import { randomUUID } from 'node:crypto';
 import { setTimeout as delay } from 'node:timers/promises';
 
 export function stagingConfig(env) {
-  const apiKey = env.MALIPO_B2C_API_KEY; // gitleaks:allow -- environment lookup, not a literal credential
+  const apiKey = env.MALIPO_API_KEY ?? env.MALIPO_B2C_API_KEY; // gitleaks:allow -- environment lookup, not a literal credential
   if (typeof apiKey !== 'string' || !/^sk_test_[A-Za-z0-9_-]+$/.test(apiKey)) throw new Error('sandbox_key_required');
   const baseUrl = env.MALIPO_B2C_BASE_URL ?? 'https://api-staging.malipo.dev/v1';
   if (baseUrl !== 'https://api-staging.malipo.dev/v1') throw new Error('staging_origin_required');
